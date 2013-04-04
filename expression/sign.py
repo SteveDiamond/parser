@@ -13,12 +13,12 @@ class Sign(object):
             self.sign_str = sign_str
         else:
             raise Exception("No such sign %s exists." % str(sign_str))
-        
-    def __repr__(self):
-        return "Sign('%s')" % self.sign_str
-    
-    def __str__(self):
-        return self.sign_str
+
+    # Returns whether the sign string is a valid sign type.
+    @staticmethod
+    def is_sign(sign_str):
+        return sign_str in Sign.SIGN_MAP.keys()
+
         
     def __add__(self, other):
         sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
@@ -30,10 +30,10 @@ class Sign(object):
         return self + -other
        
     def __mul__(self, other):
-        if self == Sign(Sign.UNKNOWN_KEY) or other == Sign(Sign.UNKNOWN_KEY):
-            return Sign(Sign.UNKNOWN_KEY)
-        elif self == Sign(Sign.ZERO_KEY) or other == Sign(Sign.ZERO_KEY):
+        if self == Sign(Sign.ZERO_KEY) or other == Sign(Sign.ZERO_KEY):
             return Sign(Sign.ZERO_KEY)
+        elif self == Sign(Sign.UNKNOWN_KEY) or other == Sign(Sign.UNKNOWN_KEY):
+            return Sign(Sign.UNKNOWN_KEY)
         elif self != other:
             return Sign(Sign.NEGATIVE_KEY)
         else:
@@ -53,3 +53,9 @@ class Sign(object):
     
     def __ne__(self,other):
         return self.sign_str != other.sign_str
+
+    def __repr__(self):
+        return "Sign('%s')" % self.sign_str
+    
+    def __str__(self):
+        return self.sign_str

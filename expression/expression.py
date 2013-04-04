@@ -36,14 +36,16 @@ class Expression(object):
         # must have been parenthesized.
         # Likewise with equal priority operations to the right.
         exp = self.subexpressions[0]
+        exp_str = str(exp)
         if exp.priority < self.priority:
-            exp.name = "(" + str(exp) + ")"
-        self.name = exp.name + self.name
+            exp_str = "(" + exp_str + ")"
+        self.name = exp_str + self.name
 
         exp = self.subexpressions[1]
+        exp_str = str(exp)
         if exp.priority <= self.priority:
-            exp.name = "(" + str(exp) + ")"
-        self.name = self.name + exp.name
+            exp_str = "(" + exp_str + ")"
+        self.name = self.name + exp_str
     
     def __add__(self, other):
         exp = Expression(self.vexity + other.vexity,
@@ -137,35 +139,32 @@ class Expression(object):
         return self.name
 
 
-# class Variable(Expression):
-#     def __init__(self, name, shape):
-#         if not ismatrix(shape):
-#             super(Variable, self).__init__(AFFINE, UNKNOWN, shape, name, LinearFunc.variable(name))
-#         else:
-#             raise TypeError("Cannot create a matrix variable.")
+class Variable(Expression):
+    """ A convex optimization variable. """
+    def __init__(self, name):
+        super(Variable, self).__init__(Vexity(Vexity.AFFINE_KEY),
+                                       Sign(Sign.UNKNOWN_KEY),
+                                       name,
+                                       [])
     
-#     def __repr__(self):
-#         return "Variable(%s, %s)" % (self.name, self.shape)
+    def __repr__(self):
+        return "Variable(%s)" % (self.name)
+
+    def __str__(self):
+        return self.name
         
-#     def scoop(self):
-#         """Declaration of variable in SCOOP lang"""
-#         return "variable %s %s" % ( str(self.name), str.lower(str(self.shape)) )
-        
-# class Parameter(Expression):
-#     def __init__(self, name, shape, sign):
-#         super(Parameter, self).__init__(AFFINE, sign, shape, name, LinearFunc.constant(name))
-        
-#     def __repr__(self):
-#         return "Parameter(%s, %s, %s)" % (self.name, self.shape, self.sign)
+class Parameter(Expression):
+    """ A convex optimization parameter. """
+    def __init__(self, name, sign):
+        super(Parameter, self).__init__(Vexity(Vexity.CONSTANT_KEY),
+                                       sign,
+                                       name,
+                                       [])        
+    def __repr__(self):
+        return "Parameter(%s, %s)" % (self.name, self.sign)
             
-#     def __str__(self):
-#         return self.name
-    
-#     def scoop(self):
-#         if isunknown(self):
-#             return "parameter %s %s" % ( str(self.name), str.lower(str(self.shape)) )
-#         else:
-#             return "parameter %s %s %s" % ( str(self.name), str.lower(str(self.shape)), str.lower(str(self.sign)) )
+    def __str__(self):
+        return self.name
     
         
 # class Constant(Expression):
