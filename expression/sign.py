@@ -1,23 +1,15 @@
 class Sign(object):
-    """ Sign of convex optimization expressions """
-    signs = set(['POSITIVE', 'NEGATIVE', 'UNKNOWN'])
+    """ Sign of convex optimization expressions. """
+    POSITIVE_KEY = 'POSITIVE'
+    NEGATIVE_KEY = 'NEGATIVE'
+    UNKNOWN_KEY = 'UNKNOWN'
+    ZERO_KEY = 'ZERO'
     
-    add_lookup = {
-        ('POSITIVE','POSITIVE'): 'POSITIVE',
-        ('NEGATIVE','NEGATIVE'): 'NEGATIVE'
-    }
-    
-    mul_lookup = {
-        ('NEGATIVE','NEGATIVE'): 'POSITIVE',
-        ('POSITIVE','POSITIVE'): 'POSITIVE',
-        ('NEGATIVE','POSITIVE'): 'NEGATIVE',
-        ('POSITIVE','NEGATIVE'): 'NEGATIVE'
-    }
-    
-    negate = {'POSITIVE': 'NEGATIVE', 'NEGATIVE':'POSITIVE', 'UNKNOWN':'UNKNOWN'}
+    # SIGN_MAP for resolving sign addition using bitwise OR
+    SIGN_MAP = {ZERO_KEY: 0, POSITIVE_KEY: 1, NEGATIVE_KEY: 2, UNKNOWN_KEY: 3}
     
     def __init__(self,sign_str):
-        if sign_str in self.signs:
+        if sign_str in Sign.SIGN_MAP.keys():
             self.sign_str = sign_str
         else:
             raise Exception("No such sign %s exists." % str(sign_str))
@@ -29,33 +21,35 @@ class Sign(object):
         return self.sign_str
         
     def __add__(self, other):
-        lhs = self.sign_str
-        rhs = other.sign_str
-        
-        sign = self.add_lookup.get( (lhs, rhs), 'UNKNOWN' )
-        return Sign(sign)
+        sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
+        for key,val in Sign.SIGN_MAP.items():
+            if val == sign_val:
+                return Sign(key)
     
     def __sub__(self, other):
-        return self.__add__(other.__neg__())
+        return self + -other
        
     def __mul__(self, other):
-        lhs = self.sign_str
-        rhs = other.sign_str
-        
-        sign = self.mul_lookup.get( (lhs, rhs), 'UNKNOWN' )
-        return Sign(sign)
+        if self == Sign(Sign.UNKNOWN_KEY) or other == Sign(Sign.UNKNOWN_KEY):
+            return Sign(Sign.UNKNOWN_KEY)
+        elif self == Sign(Sign.ZERO_KEY) or other == Sign(Sign.ZERO_KEY):
+            return Sign(Sign.ZERO_KEY)
+        elif self != other:
+            return Sign(Sign.NEGATIVE_KEY)
+        else:
+            return Sign(Sign.POSITIVE_KEY)
+
+    def __div__(self, other):
+        if other == Sign(Sign.ZERO_KEY):
+            raise Exception("Divide by zero error.")
+        else:
+            return self * other
         
     def __neg__(self):
-        sign_str = self.negate[self.sign_str]
-        return Sign(sign_str)
+        return self * Sign(Sign.NEGATIVE_KEY)
         
     def __eq__(self,other):
         return self.sign_str == other.sign_str
     
     def __ne__(self,other):
         return self.sign_str != other.sign_str
-        
-# these are (mutable) globals, so be careful!
-POSITIVE = Sign('POSITIVE')
-NEGATIVE = Sign('NEGATIVE')
-UNKNOWN = Sign('UNKNOWN')
