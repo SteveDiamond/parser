@@ -1,7 +1,7 @@
 from parser.expression.vexity import Vexity
 from parser.expression.sign import Sign
 
-class TestVexity:
+class TestVexity(object):
     """ Unit tests for the expression/vexity class. """
     @classmethod
     def setup_class(self):

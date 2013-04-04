@@ -2,7 +2,7 @@ from parser.expression.vexity import Vexity
 from parser.expression.sign import Sign
 from parser.expression.expression import *
 
-class TestExpression:
+class TestExpression(object):
     """ Unit tests for the expression/expression module. """
     @classmethod
     def setup_class(self):
@@ -66,3 +66,25 @@ class TestExpression:
     def test_neg(self):
         assert (-self.cvx_exp).vexity == self.concave
         assert (-self.aff_exp).vexity == self.affine
+
+    # Tests whether expression string representations properly reflect the
+    # parenthesization of the original expression.
+    def test_to_str(self):
+        # Unequal priorities
+        exp = (self.pos_const + self.neg_const) * self.zero_const
+        expected_str = "(" + str(self.pos_const) + " + " + \
+          str(self.neg_const) + ")" + " * " + str(self.zero_const)
+        assert str(exp) == expected_str
+
+        # Equal priorities
+        exp = self.pos_const + (self.neg_const - self.zero_const)
+        expected_str = str(self.pos_const) + " + " + \
+          "(" + str(self.neg_const) + " - " + str(self.zero_const) + ")" 
+        assert str(exp) == expected_str
+
+        # Extraneous parentheses
+        exp = (self.pos_const / self.neg_const) * self.zero_const
+        expected_str = str(self.pos_const) + " / " + \
+          str(self.neg_const) + " * " + str(self.zero_const)
+        assert str(exp) == expected_str
+

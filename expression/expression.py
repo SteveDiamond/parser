@@ -3,6 +3,7 @@
 #     isaff, iscvx, isccv, ismatrix, isscalar, isvector   
 from sign import Sign
 from vexity import Vexity
+from sys import maxint
 
 class Expression(object):
     """
@@ -13,38 +14,53 @@ class Expression(object):
     Priority is the order of operations priority of the binary operation that
     created the expression (if any). It is used to reconstruct parentheses.
     """
+
+    # Constants for computing priority.
+    MULT = ' * '
+    DIV = ' / '
+    PLUS = ' + '
+    MINUS = ' - '
+    PRIORITY_MAP = {MULT: 2, DIV: 2, PLUS: 1, MINUS: 1}
     
-    def __init__(self, vexity, sign, name, subexpressions, priority = -1):
+    def __init__(self, vexity, sign, name, subexpressions, priority = maxint):
         self.vexity = vexity
         self.sign = sign
         self.name = name
         self.subexpressions = subexpressions
         self.priority = priority
+
+    # Determines whether the subexpressions of a expression constructed
+    # by a binary relation should be parenthesized.
+    def impute_parens(self):
+        # Lower priority operations that happened first
+        # must have been parenthesized.
+        # Likewise with equal priority operations to the right.
+        exp = self.subexpressions[0]
+        if exp.priority < self.priority:
+            exp.name = "(" + str(exp) + ")"
+        self.name = exp.name + self.name
+
+        exp = self.subexpressions[1]
+        if exp.priority <= self.priority:
+            exp.name = "(" + str(exp) + ")"
+        self.name = self.name + exp.name
     
     def __add__(self, other):
-        return Expression(self.vexity + other.vexity,
+        exp = Expression(self.vexity + other.vexity,
                           self.sign + other.sign,
-                          str(self) + ' + ' + str(other), 
-                          [self,other])
+                          Expression.PLUS, 
+                          [self,other],
+                          Expression.PRIORITY_MAP[Expression.PLUS])
+        exp.impute_parens()
+        return exp
     
     def __sub__(self, other):
-        return Expression(self.vexity - other.vexity,
+        exp = Expression(self.vexity - other.vexity,
                           self.sign - other.sign,
-                          str(self) + ' - ' + str(other), 
-                          [self,other])
-
-    def __mul__(self, other):
-        sign = self.sign * other.sign
-        vexity = self.vexity * other.vexity
-        exp = Expression(vexity, sign, str(self) + ' * ' + str(other), [self,other])
-        exp.sign_by_vexity()
-        return exp
-
-    def __div__(self, other):
-        sign = self.sign / other.sign
-        vexity = self.vexity / other.vexity
-        exp = Expression(vexity, sign, str(self) + ' / ' + str(other), [self,other])
-        exp.sign_by_vexity()
+                          Expression.MINUS, 
+                          [self,other],
+                          Expression.PRIORITY_MAP[Expression.MINUS])
+        exp.impute_parens()
         return exp
 
     # Adjust vexity based on sign of subexpressions.
@@ -54,11 +70,35 @@ class Expression(object):
     # For multiplication by non-constants, the vexity
     # is always nonconvex.
     def sign_by_vexity(self):
-        for i in range(2):
+        for i in range(len(self.subexpressions)):
             vexity = self.subexpressions[i].vexity
             sign = self.subexpressions[i].sign
             if vexity == Vexity(Vexity.CONSTANT_KEY):
                 self.vexity = self.vexity.sign_mult(sign)
+
+    def __mul__(self, other):
+        sign = self.sign * other.sign
+        vexity = self.vexity * other.vexity
+        exp = Expression(vexity, 
+                         sign, 
+                         Expression.MULT, 
+                         [self,other],
+                         Expression.PRIORITY_MAP[Expression.MULT])
+        exp.sign_by_vexity()
+        exp.impute_parens()
+        return exp
+
+    def __div__(self, other):
+        sign = self.sign / other.sign
+        vexity = self.vexity / other.vexity
+        exp = Expression(vexity, 
+                         sign, 
+                         Expression.DIV, 
+                         [self,other],
+                         Expression.PRIORITY_MAP[Expression.DIV])
+        exp.sign_by_vexity()
+        exp.impute_parens()
+        return exp
         
     def __neg__(self):
         return Expression(-self.vexity,
