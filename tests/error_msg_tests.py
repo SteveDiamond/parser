@@ -1,5 +1,5 @@
 from dcp_parser.parser import Parser
-from dcp_parser.expression.curvature import Curvature
+from dcp_parser.expression.vexity import Vexity
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.expression import *
 from nose.tools import assert_equals
@@ -8,10 +8,10 @@ class TestErrorMsg(object):
       """ Tests for DCP violation error messages. """
       @classmethod
       def setup_class(self):
-          self.aff_exp = Expression(Curvature.AFFINE, Sign.UNKNOWN, 'aff_exp')
-          self.cvx_exp = Expression(Curvature.CONVEX, Sign.UNKNOWN, 'convex_exp')
-          self.conc_exp = Expression(Curvature.CONCAVE, Sign.UNKNOWN, 'conc_exp')
-          self.noncvx_exp = Expression(Curvature.NONCONVEX, Sign.UNKNOWN, 'noncvx_exp')
+          self.aff_exp = Expression(Vexity.AFFINE, Sign.UNKNOWN, 'aff_exp')
+          self.cvx_exp = Expression(Vexity.CONVEX, Sign.UNKNOWN, 'convex_exp')
+          self.conc_exp = Expression(Vexity.CONCAVE, Sign.UNKNOWN, 'conc_exp')
+          self.noncvx_exp = Expression(Vexity.NONCONVEX, Sign.UNKNOWN, 'noncvx_exp')
 
           self.dcp_violation = "Disciplined convex programming violation:\n"
 
@@ -29,7 +29,7 @@ class TestErrorMsg(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.curvature, Curvature.CONSTANT)
+          assert_equals(result.vexity, Vexity.CONSTANT)
           assert_equals(result.sign, Sign.POSITIVE)
 
       # Test parser with atoms
@@ -41,19 +41,19 @@ class TestErrorMsg(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.curvature, Curvature.CONVEX)
+          assert_equals(result.vexity, Vexity.CONVEX)
           assert_equals(result.sign, Sign.UNKNOWN)
 
           expression = '-square(square(u)) - max(square(v), c)'
           self.parser.parse(expression)
           result = self.parser.expressions[1]
           assert_equals(expression, str(result))
-          assert_equals(result.curvature, Curvature.CONCAVE)
+          assert_equals(result.vexity, Vexity.CONCAVE)
           assert_equals(result.sign, Sign.NEGATIVE)
 
           expression = 'c * square(log(u)) + max(c, log_sum_exp(max(u, v), c))'
           self.parser.parse(expression)
           result = self.parser.expressions[2]
           assert_equals(expression, str(result))
-          assert_equals(result.curvature, Curvature.NONCONVEX)
+          assert_equals(result.vexity, Vexity.NONCONVEX)
           assert_equals(result.sign, Sign.POSITIVE)
