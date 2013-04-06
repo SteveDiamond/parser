@@ -52,34 +52,41 @@ class Vexity(object):
     # Captures effect on vexity of multiplication or division by a signed constant.
     # e.g. negative constant * convex == concave
     def sign_mult(self, sign):
-        if sign == Sign(Sign.UNKNOWN_KEY):
+        if sign == Sign.UNKNOWN:
             vexity_str = Vexity.UNKNOWN_MAP.get(self.vexity_str, self.vexity_str)
             return Vexity(vexity_str)
-        elif sign == Sign(Sign.ZERO_KEY):
-            return Vexity(Vexity.CONSTANT_KEY)
-        elif sign == Sign(Sign.NEGATIVE_KEY):
+        elif sign == Sign.ZERO:
+            return Vexity.CONSTANT
+        elif sign == Sign.NEGATIVE:
             vexity_str = Vexity.NEGATION_MAP.get(self.vexity_str, self.vexity_str)
             return Vexity(vexity_str)
         else: # Positive sign
             return self
        
     def __mul__(self, other):
-        if self == Vexity(Vexity.CONSTANT_KEY) or other == Vexity(Vexity.CONSTANT_KEY):
+        if self == Vexity.CONSTANT or other == Vexity.CONSTANT:
             return self + other
         else:
-            return Vexity(Vexity.NONCONVEX_KEY)
+            return Vexity.NONCONVEX
 
     def __div__(self, other):
-        if other == Vexity(Vexity.CONSTANT_KEY):
+        if other == Vexity.CONSTANT:
             return self + other
         else:
-            return Vexity(Vexity.NONCONVEX_KEY)
+            return Vexity.NONCONVEX
         
     def __neg__(self):
-        return self.sign_mult(Sign(Sign.NEGATIVE_KEY))
+        return self.sign_mult(Sign.NEGATIVE)
         
     def __eq__(self,other):
         return self.vexity_str == other.vexity_str
     
     def __ne__(self,other):
         return self.vexity_str != other.vexity_str
+
+# Class constants for all vexity types.
+Vexity.CONSTANT = Vexity(Vexity.CONSTANT_KEY)
+Vexity.AFFINE = Vexity(Vexity.AFFINE_KEY)
+Vexity.CONVEX = Vexity(Vexity.CONVEX_KEY)
+Vexity.CONCAVE = Vexity(Vexity.CONCAVE_KEY)
+Vexity.NONCONVEX = Vexity(Vexity.NONCONVEX_KEY)

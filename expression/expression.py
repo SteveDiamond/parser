@@ -4,6 +4,7 @@
 from sign import Sign
 from vexity import Vexity
 from sys import maxint
+from numbers import Number
 
 class Expression(object):
     """
@@ -22,7 +23,7 @@ class Expression(object):
     MINUS = ' - '
     PRIORITY_MAP = {MULT: 2, DIV: 2, PLUS: 1, MINUS: 1}
     
-    def __init__(self, vexity, sign, name, subexpressions, priority = maxint):
+    def __init__(self, vexity, sign, name, subexpressions = None, priority = maxint):
         self.vexity = vexity
         self.sign = sign
         self.name = name
@@ -46,8 +47,22 @@ class Expression(object):
         if exp.priority <= self.priority:
             exp_str = "(" + exp_str + ")"
         self.name = self.name + exp_str
+
+    # Verifies that other in binary operations is a number or
+    # an expression. If it is a number, it is converted to a constant.
+    @staticmethod
+    def type_check(other):
+        if isinstance(other, Number):
+            return Constant(other)
+        elif isinstance(other, Expression):
+            return other
+        else:
+            raise Exception("Illegal operation on object %s. Object must be of "
+                            "type number or Expression, but is type %s."
+                            % (str(other), other.__class__.__name__))
     
     def __add__(self, other):
+        other = Expression.type_check(other)
         exp = Expression(self.vexity + other.vexity,
                           self.sign + other.sign,
                           Expression.PLUS, 
@@ -55,8 +70,13 @@ class Expression(object):
                           Expression.PRIORITY_MAP[Expression.PLUS])
         exp.impute_parens()
         return exp
+
+    # Called if var + Expression not implemented, with arguments reversed.
+    def __radd__(self, other):
+        return Expression.type_check(other) + self
     
     def __sub__(self, other):
+        other = Expression.type_check(other)
         exp = Expression(self.vexity - other.vexity,
                           self.sign - other.sign,
                           Expression.MINUS, 
@@ -64,6 +84,10 @@ class Expression(object):
                           Expression.PRIORITY_MAP[Expression.MINUS])
         exp.impute_parens()
         return exp
+
+    # Called if var - Expression not implemented, with arguments reversed.
+    def __rsub__(self, other):
+        return Expression.type_check(other) - self
 
     # Adjust vexity based on sign of subexpressions.
     # Used for multiplication and division.
@@ -75,10 +99,11 @@ class Expression(object):
         for i in range(len(self.subexpressions)):
             vexity = self.subexpressions[i].vexity
             sign = self.subexpressions[i].sign
-            if vexity == Vexity(Vexity.CONSTANT_KEY):
+            if vexity == Vexity.CONSTANT:
                 self.vexity = self.vexity.sign_mult(sign)
 
     def __mul__(self, other):
+        other = Expression.type_check(other)
         sign = self.sign * other.sign
         vexity = self.vexity * other.vexity
         exp = Expression(vexity, 
@@ -90,7 +115,12 @@ class Expression(object):
         exp.impute_parens()
         return exp
 
+    # Called if var * Expression not implemented, with arguments reversed.
+    def __rmul__(self, other):
+        return Expression.type_check(other) * self
+
     def __div__(self, other):
+        other = Expression.type_check(other)
         sign = self.sign / other.sign
         vexity = self.vexity / other.vexity
         exp = Expression(vexity, 
@@ -101,6 +131,10 @@ class Expression(object):
         exp.sign_by_vexity()
         exp.impute_parens()
         return exp
+
+    # Called if var / Expression not implemented, with arguments reversed.
+    def __rdiv__(self, other):
+        return Expression.type_check(other) / self
         
     def __neg__(self):
         return Expression(-self.vexity,
@@ -132,7 +166,10 @@ class Expression(object):
     
     def __repr__(self):
         """Representation in Python"""
-        return "Expression(%s, %s, %s, %s)" % (self.vexity, self.sign, self.name, self.subexpressions)
+        return "Expression(%s, %s, %s, %s)" % (self.vexity, 
+                                               self.sign, 
+                                               self.name, 
+                                               self.subexpressions)
     
     def __str__(self):
         """String representation"""
@@ -142,10 +179,9 @@ class Expression(object):
 class Variable(Expression):
     """ A convex optimization variable. """
     def __init__(self, name):
-        super(Variable, self).__init__(Vexity(Vexity.AFFINE_KEY),
-                                       Sign(Sign.UNKNOWN_KEY),
-                                       name,
-                                       [])
+        super(Variable, self).__init__(Vexity.AFFINE,
+                                       Sign.UNKNOWN,
+                                       name)
     
     def __repr__(self):
         return "Variable(%s)" % (self.name)
@@ -156,10 +192,9 @@ class Variable(Expression):
 class Parameter(Expression):
     """ A convex optimization parameter. """
     def __init__(self, name, sign):
-        super(Parameter, self).__init__(Vexity(Vexity.CONSTANT_KEY),
-                                       sign,
-                                       name,
-                                       [])        
+        super(Parameter, self).__init__(Vexity.CONSTANT,
+                                        sign,
+                                        name)      
     def __repr__(self):
         return "Parameter(%s, %s)" % (self.name, self.sign)
             
@@ -167,19 +202,17 @@ class Parameter(Expression):
         return self.name
     
         
-# class Constant(Expression):
-#     # value = 0.0
-    
-#     def __init__(self, value):
-#         if value >= 0:
-#             sign = POSITIVE
-#         else:
-#             sign = NEGATIVE
-#         super(Constant, self).__init__(AFFINE, sign, Scalar(), str(value), LinearFunc.constant(value))
+class Constant(Expression):
+    def __init__(self, value):
+        if value > 0:
+            sign_str = Sign.POSITIVE_KEY
+        elif value == 0:
+            sign_str = Sign.ZERO_KEY
+        else:
+            sign_str = Sign.NEGATIVE_KEY
+        super(Constant, self).__init__(Vexity.CONSTANT, 
+                                       Sign(sign_str),
+                                       str(value))
         
-#     def __repr__(self):
-#         return "Constant(%s)" % self.name
-    
-#     def scoop(self):
-#         """Declaration of variable in SCOOP lang"""
-#         return "variable %s %s" % ( str(self.name), str.lower(str(self.shape)) )
+    def __repr__(self):
+        return "Constant(%s)" % self.name

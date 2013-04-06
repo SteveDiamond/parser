@@ -4,24 +4,16 @@ from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.expression import *
 from nose.tools import assert_equals
 
-class TestExpression(object):
+class TestParser(object):
       """ Unit tests for the parser/parser class. """
       def setup(self):
           self.parser = Parser()
-
-          self.affine = Vexity(Vexity.AFFINE_KEY)
-          self.constant = Vexity(Vexity.CONSTANT_KEY)
-
-          self.positive = Sign(Sign.POSITIVE_KEY)
-          self.negative = Sign(Sign.NEGATIVE_KEY)
-          self.unknown = Sign(Sign.UNKNOWN_KEY)
-          self.zero = Sign(Sign.ZERO_KEY)
 
       def test_parse_variables(self):
           exp = 'variable x'
           self.parser.parse(exp)
           assert 'x' in self.parser.symbol_table
-          assert_equals(self.parser.symbol_table['x'].vexity, self.affine)
+          assert_equals(self.parser.symbol_table['x'].vexity, Vexity.AFFINE)
 
           exp = ' variable  y    z '
           self.parser.parse(exp)
@@ -32,13 +24,13 @@ class TestExpression(object):
           exp = 'parameter x'
           self.parser.parse(exp)
           assert 'x' in self.parser.symbol_table
-          assert_equals(self.parser.symbol_table['x'].vexity, self.constant)
-          assert_equals(self.parser.symbol_table['x'].sign, self.unknown)
+          assert_equals(self.parser.symbol_table['x'].vexity, Vexity.CONSTANT)
+          assert_equals(self.parser.symbol_table['x'].sign, Sign.UNKNOWN)
 
           exp = ' parameter negative  y    z '
           self.parser.parse(exp)
           assert 'z' in self.parser.symbol_table
-          assert_equals(self.parser.symbol_table['z'].sign, self.negative)
+          assert_equals(self.parser.symbol_table['z'].sign, Sign.NEGATIVE)
           assert_equals(len(self.parser.symbol_table.keys()), 3)
 
       # Test parser with only variables and parameters
@@ -51,9 +43,47 @@ class TestExpression(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, self.constant)
-          assert_equals(result.sign, self.zero)
+          assert_equals(result.vexity, Vexity.CONSTANT)
+          assert_equals(result.sign, Sign.ZERO)
 
           rh_exp = result.subexpressions[1]
           assert_equals('a * x + d * (y / b - z)', str(rh_exp))
-          assert_equals(rh_exp.vexity, self.affine)
+          assert_equals(rh_exp.vexity, Vexity.AFFINE)
+
+      # Test parser with numeric constants
+      def test_constants_eval(self):
+          self.parser.parse('variable x y z')
+          self.parser.parse('parameter negative a b')
+          expression = '-2 * b + 0 * (z * x - 5) + -a / 1.5'
+          self.parser.parse(expression)
+
+          result = self.parser.expressions[0]
+          assert_equals(expression, str(result))
+          assert_equals(result.vexity, Vexity.CONSTANT)
+          assert_equals(result.sign, Sign.POSITIVE)
+
+      # Test parser with atoms
+      def test_atoms_eval(self):
+          self.parser.parse('variable u v')
+          self.parser.parse('parameter positive c d')
+          expression = 'c * square(square(u)) - log(v) - (-c * log_sum_exp(d, u, v) - max(u, c))'
+          self.parser.parse(expression)
+
+          result = self.parser.expressions[0]
+          assert_equals(expression, str(result))
+          assert_equals(result.vexity, Vexity.CONVEX)
+          assert_equals(result.sign, Sign.UNKNOWN)
+
+          expression = '-square(square(u)) - max(square(v), c)'
+          self.parser.parse(expression)
+          result = self.parser.expressions[1]
+          assert_equals(expression, str(result))
+          assert_equals(result.vexity, Vexity.CONCAVE)
+          assert_equals(result.sign, Sign.NEGATIVE)
+
+          expression = 'c * square(log(u)) + max(c, log_sum_exp(max(u, v), c))'
+          self.parser.parse(expression)
+          result = self.parser.expressions[2]
+          assert_equals(expression, str(result))
+          assert_equals(result.vexity, Vexity.NONCONVEX)
+          assert_equals(result.sign, Sign.POSITIVE)

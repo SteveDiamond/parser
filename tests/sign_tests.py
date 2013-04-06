@@ -5,36 +5,33 @@ class TestSign(object):
   """ Unit tests for the expression/sign class. """
   @classmethod
   def setup_class(self):
-      self.positive = Sign(Sign.POSITIVE_KEY)
-      self.negative = Sign(Sign.NEGATIVE_KEY)
-      self.unknown = Sign(Sign.UNKNOWN_KEY)
-      self.zero = Sign(Sign.ZERO_KEY)
-
+      pass
+      
   def test_add(self):
-      assert_equals(self.positive + self.negative, self.unknown)
-      assert_equals(self.negative + self.zero, self.negative)
-      assert_equals(self.positive + self.positive, self.positive)
-      assert_equals(self.unknown + self.zero, self.unknown)
+      assert_equals(Sign.POSITIVE + Sign.NEGATIVE, Sign.UNKNOWN)
+      assert_equals(Sign.NEGATIVE + Sign.ZERO, Sign.NEGATIVE)
+      assert_equals(Sign.POSITIVE + Sign.POSITIVE, Sign.POSITIVE)
+      assert_equals(Sign.UNKNOWN + Sign.ZERO, Sign.UNKNOWN)
 
   def test_sub(self):
-      assert_equals(self.positive - self.negative, self.positive)
-      assert_equals(self.negative - self.zero, self.negative)
-      assert_equals(self.positive - self.positive, self.unknown)
+      assert_equals(Sign.POSITIVE - Sign.NEGATIVE, Sign.POSITIVE)
+      assert_equals(Sign.NEGATIVE - Sign.ZERO, Sign.NEGATIVE)
+      assert_equals(Sign.POSITIVE - Sign.POSITIVE, Sign.UNKNOWN)
 
   def test_mult(self):
-      assert_equals(self.zero * self.positive, self.zero)
-      assert_equals(self.unknown * self.positive, self.unknown)
-      assert_equals(self.positive * self.negative, self.negative)
-      assert_equals(self.negative * self.negative, self.positive)
-      assert_equals(self.zero * self.unknown, self.zero)
+      assert_equals(Sign.ZERO * Sign.POSITIVE, Sign.ZERO)
+      assert_equals(Sign.UNKNOWN * Sign.POSITIVE, Sign.UNKNOWN)
+      assert_equals(Sign.POSITIVE * Sign.NEGATIVE, Sign.NEGATIVE)
+      assert_equals(Sign.NEGATIVE * Sign.NEGATIVE, Sign.POSITIVE)
+      assert_equals(Sign.ZERO * Sign.UNKNOWN, Sign.ZERO)
 
   def test_neg(self):
-      assert_equals(-self.zero, self.zero)
-      assert_equals(-self.positive, self.negative)
+      assert_equals(-Sign.ZERO, Sign.ZERO)
+      assert_equals(-Sign.POSITIVE, Sign.NEGATIVE)
 
   def test_div(self):
-      assert_equals(self.positive / self.negative, self.negative)
+      assert_equals(Sign.POSITIVE / Sign.NEGATIVE, Sign.NEGATIVE)
 
   @raises(Exception)
   def test_div_by_zero(self):
-      self.positive / self.zero
+      Sign.POSITIVE / Sign.ZERO

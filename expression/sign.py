@@ -30,23 +30,23 @@ class Sign(object):
         return self + -other
        
     def __mul__(self, other):
-        if self == Sign(Sign.ZERO_KEY) or other == Sign(Sign.ZERO_KEY):
-            return Sign(Sign.ZERO_KEY)
-        elif self == Sign(Sign.UNKNOWN_KEY) or other == Sign(Sign.UNKNOWN_KEY):
-            return Sign(Sign.UNKNOWN_KEY)
+        if self == Sign.ZERO or other == Sign.ZERO:
+            return Sign.ZERO
+        elif self == Sign.UNKNOWN or other == Sign.UNKNOWN:
+            return Sign.UNKNOWN
         elif self != other:
-            return Sign(Sign.NEGATIVE_KEY)
+            return Sign.NEGATIVE
         else:
-            return Sign(Sign.POSITIVE_KEY)
+            return Sign.POSITIVE
 
     def __div__(self, other):
-        if other == Sign(Sign.ZERO_KEY):
+        if other == Sign.ZERO:
             raise Exception("Divide by zero error.")
         else:
             return self * other
         
     def __neg__(self):
-        return self * Sign(Sign.NEGATIVE_KEY)
+        return self * Sign.NEGATIVE
         
     def __eq__(self,other):
         return self.sign_str == other.sign_str
@@ -59,3 +59,9 @@ class Sign(object):
     
     def __str__(self):
         return self.sign_str
+
+# Class constants for all sign types.
+Sign.POSITIVE = Sign(Sign.POSITIVE_KEY)
+Sign.NEGATIVE = Sign(Sign.NEGATIVE_KEY)
+Sign.ZERO = Sign(Sign.ZERO_KEY)
+Sign.UNKNOWN = Sign(Sign.UNKNOWN_KEY)
