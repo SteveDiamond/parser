@@ -1,5 +1,6 @@
 """ Definitions of atomic functions """
 import abc
+from numbers import Number
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.atomic.monotonicity import Monotonicity
@@ -103,20 +104,16 @@ class Log_sum_exp(Atom):
 
 class Max(Atom):
     """ Maximum argument. """
-    # Positive if any arg positive, unknown if any arg unknown,
-    # negative if all arguments negative, zero if at least 
+    # Positive if any arg positive.
+    # Unknown if no args positive and any arg unknown.
+    # Negative if all arguments negative, zero if at least 
     # one arg zero and all others negative.
     def sign(self):
-        zero_arg = False
+        largest = Sign.NEGATIVE
         for arg in self.args:
-            if arg.sign == Sign.POSITIVE or arg.sign == Sign.UNKNOWN:
-                return arg.sign
-            elif arg.sign == Sign.ZERO:
-                zero_arg = True
-        if zero_arg: 
-            return Sign.ZERO 
-        else: 
-            return Sign.NEGATIVE
+            if arg.sign > largest:
+                largest = arg.sign
+        return largest
 
     # Always convex
     def signed_curvature(self):

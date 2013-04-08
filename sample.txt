@@ -1,5 +1,9 @@
 variable x y z
 parameter positive a
 parameter negative b
+
+# Valid
 a*square(square(x)) + b*log(y)
-log_sum_exp(a*x, max(b, -a*log(y)))) + a*z/b
+log_sum_exp(a*x, max(b, -a*log(y))) + a*z/b
+# Invalid
+square(log(z)) - log_sum_exp(2*x*z, -square(y)) + (max(x,3) + log(y))

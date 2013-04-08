@@ -22,3 +22,8 @@ class DCPViolation(object):
     @staticmethod
     def type_to_name(type):
         return DCPViolation.TYPE_TO_NAME[str(type)]
+
+    # Returns whether the error is indexed as an argument in a function.
+    # Distinguishes OperationErrors from CompositionErrors
+    def is_indexed(self):
+        return hasattr(self, 'index')

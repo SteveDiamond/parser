@@ -13,6 +13,7 @@ class Parser(object):
     # Keywords
     VARIABLE_KEYWORD = 'variable'
     PARAMETER_KEYWORD = 'parameter'
+    COMMENT_KEYWORD = '#'
 
     def __init__(self):
         self.clear()
@@ -31,6 +32,7 @@ class Parser(object):
         actions = { 
             Parser.VARIABLE_KEYWORD: self.parse_variables, 
             Parser.PARAMETER_KEYWORD: self.parse_parameters,
+            Parser.COMMENT_KEYWORD: lambda *args: None # Do nothing
         }
         
         # If not one of the actions listed, default is to parse expression.

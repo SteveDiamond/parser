@@ -7,6 +7,8 @@ class Sign(object):
     
     # SIGN_MAP for resolving sign addition using bitwise OR
     SIGN_MAP = {ZERO_KEY: 0, POSITIVE_KEY: 1, NEGATIVE_KEY: 2, UNKNOWN_KEY: 3}
+    # For comparison of signs
+    ORDERING = [NEGATIVE_KEY, ZERO_KEY, UNKNOWN_KEY, POSITIVE_KEY]
     
     def __init__(self,sign_str):
         if sign_str in Sign.SIGN_MAP.keys():
@@ -53,6 +55,12 @@ class Sign(object):
     
     def __ne__(self,other):
         return self.sign_str != other.sign_str
+
+    def __lt__(self, other): 
+        return Sign.ORDERING.index(self.sign_str) < Sign.ORDERING.index(other.sign_str)
+
+    def __gt__(self, other): 
+        return other < self
 
     def __repr__(self):
         return "Sign('%s')" % self.sign_str

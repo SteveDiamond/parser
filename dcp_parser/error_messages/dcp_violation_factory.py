@@ -14,7 +14,7 @@ class DCPViolationFactory(object):
         if result_exp.curvature == Curvature.NONCONVEX:
             return [OperationError(op_str, lh_exp, rh_exp)]
         else:
-            return None
+            return []
 
     # Returns a list with a CompositionError for each argument that 
     # violates DCP composition rules, i.e. produces a non-convex composition.
@@ -29,6 +29,6 @@ class DCPViolationFactory(object):
                 errors.append(err)
 
         if len(errors) == 0:
-            return None
+            return []
         else:
             return errors

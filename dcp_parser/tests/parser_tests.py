@@ -38,7 +38,7 @@ class TestParser(object):
           self.parser.parse('variable x y z')
           self.parser.parse('parameter positive a b')
           self.parser.parse('parameter zero c d')
-          expression = 'c * (a * x + d * (y / b - z))'
+          expression = 'c * (a * x + d * (y / b - z) + x)'
           self.parser.parse(expression)
 
           result = self.parser.expressions[0]
@@ -47,7 +47,7 @@ class TestParser(object):
           assert_equals(result.sign, Sign.ZERO)
 
           rh_exp = result.subexpressions[1]
-          assert_equals('a * x + d * (y / b - z)', str(rh_exp))
+          assert_equals('a * x + d * (y / b - z) + x', str(rh_exp))
           assert_equals(rh_exp.curvature, Curvature.AFFINE)
 
       # Test parser with numeric constants
@@ -87,3 +87,10 @@ class TestParser(object):
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.NONCONVEX)
           assert_equals(result.sign, Sign.POSITIVE)
+
+          # Numeric arguments
+          expression = 'max(2, v)'
+          self.parser.parse(expression)
+          result = self.parser.expressions[3]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)

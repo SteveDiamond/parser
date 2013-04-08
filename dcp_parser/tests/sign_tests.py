@@ -35,3 +35,9 @@ class TestSign(object):
   @raises(Exception)
   def test_div_by_zero(self):
       Sign.POSITIVE / Sign.ZERO
+
+  # Test < and >
+  def test_cmp(self):
+     assert Sign.POSITIVE > Sign.UNKNOWN
+     assert Sign.NEGATIVE < Sign.ZERO
+     assert Sign.ZERO < Sign.UNKNOWN

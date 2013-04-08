@@ -72,6 +72,8 @@ class TestAtoms(object):
         assert_equals(Max(Constant(0), cvx_neg).sign(), Sign.ZERO)
         assert_equals(Max(self.conc_exp).curvature(), Curvature.NONCONVEX)
 
+        assert_equals(Max(Variable('a'), Constant(2)).sign(), Sign.POSITIVE)
+
     def test_log(self):
         assert_equals(Log(self.conc_exp).curvature(), Curvature.CONCAVE)
         assert_raises(Exception, Log, Constant(-2))

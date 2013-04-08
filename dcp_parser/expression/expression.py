@@ -19,13 +19,20 @@ class Expression(object):
     """
     
     def __init__(self, curvature, sign, name, 
-                 subexpressions = None, priority = maxint, errors = None):
+                 subexpressions = [], priority = maxint, errors = [], parent = None):
         self.curvature = curvature
         self.sign = sign
         self.name = name
         self.subexpressions = subexpressions
+        self.init_subexpressions()
+        self.parent = parent
         self.priority = priority
         self.errors = errors
+
+    # Initializes parent attribute of subexpressions
+    def init_subexpressions(self):
+        for exp in self.subexpressions:
+            exp.parent = self
 
     # Determines whether the subexpressions of a expression constructed
     # by a binary relation should be parenthesized.
@@ -45,20 +52,26 @@ class Expression(object):
             exp_str = "(" + exp_str + ")"
         self.name = self.name + exp_str
 
-    # Verifies that other in binary operations is a number or
-    # an expression. If it is a number, it is converted to a constant.
+    # Verifies that expression is a number or an expression. 
+    # If it is a number, it is converted to a constant.
+    # If expression is a variable or parameter, it is deep copied.
     @staticmethod
-    def type_check(other):
-        if isinstance(other, Number):
-            return Constant(other)
-        elif isinstance(other, Expression):
-            return other
+    def type_check(expression):
+        if isinstance(expression, Number):
+            return Constant(expression)
+        elif isinstance(expression, Variable):
+            return expression.deepcopy()
+        elif isinstance(expression, Parameter):
+            return expression.deepcopy()
+        elif isinstance(expression, Expression):
+            return expression
         else:
             raise Exception("Illegal operation on object %s. Object must be of "
                             "type number or Expression, but is type %s."
                             % (str(other), other.__class__.__name__))
     
     def __add__(self, other):
+        self = Expression.type_check(self)
         other = Expression.type_check(other)
         exp = Expression(self.curvature + other.curvature,
                           self.sign + other.sign,
@@ -74,6 +87,7 @@ class Expression(object):
         return settings.type_check(other) + self
     
     def __sub__(self, other):
+        self = Expression.type_check(self)
         other = Expression.type_check(other)
         exp = Expression(self.curvature - other.curvature,
                           self.sign - other.sign,
@@ -102,6 +116,7 @@ class Expression(object):
                 self.curvature = self.curvature.sign_mult(sign)
 
     def __mul__(self, other):
+        self = Expression.type_check(self)
         other = Expression.type_check(other)
         sign = self.sign * other.sign
         curvature = self.curvature * other.curvature
@@ -120,6 +135,7 @@ class Expression(object):
         return Expression.type_check(other) * self
 
     def __div__(self, other):
+        self = Expression.type_check(self)
         other = Expression.type_check(other)
         sign = self.sign / other.sign
         curvature = self.curvature / other.curvature
@@ -138,6 +154,7 @@ class Expression(object):
         return Expression.type_check(other) / self
         
     def __neg__(self):
+        self = Expression.type_check(self)
         return Expression(-self.curvature,
                           -self.sign,
                           '-' + str(self), 
@@ -161,10 +178,6 @@ class Expression(object):
     #         return EqConstraint(self,other)
     #     else:
     #         raise Exception("Cannot have '%s == %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
-            
-    def __lt__(self, other): return NotImplemented
-    def __gt__(self, other): return NotImplemented
-    def __ne__(self, other): return NotImplemented
     
     def __repr__(self):
         """Representation in Python"""
@@ -190,6 +203,10 @@ class Variable(Expression):
 
     def __str__(self):
         return self.name
+
+    # Needed so variables can occur in multiple expressions.
+    def deepcopy(self):
+        return Variable(self.name)
         
 class Parameter(Expression):
     """ A convex optimization parameter. """
@@ -202,6 +219,10 @@ class Parameter(Expression):
             
     def __str__(self):
         return self.name
+
+    # Needed so parameters can occur in multiple expressions.
+    def deepcopy(self):
+        return Parameter(self.name, self.sign)
     
         
 class Constant(Expression):

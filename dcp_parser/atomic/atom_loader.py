@@ -8,13 +8,15 @@ from dcp_parser.error_messages.dcp_violation_factory import DCPViolationFactory
 # based on the class sign and curvature.
 def make_atomic_func(atomic_class):
     def atomic_func(*args):
-        instance = atomic_class(*args)
-        func_name = atomic_class.__name__.lower()
-
         # Check that args is not empty
         args = list(args)
         if len(args) == 0:
             raise Exception('%s requires at least one argument.' % func_name)
+        # Convert numeric constants to Constants
+        args = map(Expression.type_check, args)
+
+        instance = atomic_class(*args)
+        func_name = atomic_class.__name__.lower()
         
         name = func_name + "(" + str(args[0])
         for i in range(1,len(args)):

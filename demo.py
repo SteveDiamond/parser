@@ -1,5 +1,5 @@
 """ Text based demo of parse tree generation for convex optimization expressions. """
-from parser import Parser
+from dcp_parser.parser import Parser
 
 def main():
     welcome()
@@ -13,7 +13,7 @@ def welcome():
 def get_filename():
     return raw_input('Name of the convex optimization script file: ')
 
-def parse_file(filename, parser):
+def parse_file(parser):
     while True:
         try:
             filename = get_filename()
@@ -38,14 +38,34 @@ def explore_parse_trees(parser):
     exp = select_expression(parser.expressions)
     while True:
         display_root(exp)
-        prev = exp
-        exp = select_child(exp, prev)
+        exp = select_child(exp)
 
 def display_root(exp):
-    pass
+    print
+    print "Current expression: %s" % exp
+    print "Curvature: %s, Sign: %s" % (exp.curvature, exp.sign)
+    for error in exp.errors:
+        if error.is_indexed():
+            print "Argument %i:" % error.index
+        print str(error)
 
-def select_child(exp, prev):
-    pass
+def select_child(exp):
+    num_children = len(exp.subexpressions)
+    if num_children > 0:
+      print "Child expressions:"
+      for i in range(num_children):
+          child = exp.subexpressions[i]
+          print "Expression %i: %s" % (i, child)
+    index = int(raw_input('Select a child expression by index (-1 for parent): '))
+    if index == -1:
+        if exp.parent is None:
+            return exp
+        else:
+            return exp.parent
+    elif num_children == 0:
+        return exp
+    else:
+        return exp.subexpressions[index]
 
 if __name__ == "__main__":
     main()

@@ -78,3 +78,23 @@ class TestExpression(object):
           str(self.neg_const) + " * " + str(self.zero_const)
         assert_equals(str(exp), expected_str)
 
+    # Tests whether parent is overriden for variables
+    # and parameters that are reused.
+    def test_parent(self):
+        x = Variable('x')
+        a = Variable('a')
+        exp1 = -a
+        exp2 = a + x
+
+        a1 = exp1.subexpressions[0]
+        a2 = exp2.subexpressions[0]
+        assert_equals(str(a1.parent), str(exp1))
+        assert_equals(str(a2.parent), str(exp2))
+
+        exp3 = x / x * x
+        x1 = exp3.subexpressions[0].subexpressions[0]
+        x2 = exp3.subexpressions[0].subexpressions[1]
+        x3 = exp3.subexpressions[1]
+        assert_equals(str(x1.parent), 'x / x')
+        assert_equals(str(x2.parent), 'x / x')
+        assert_equals(str(x3.parent), 'x / x * x')
