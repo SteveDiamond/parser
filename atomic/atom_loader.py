@@ -1,5 +1,6 @@
 from dcp_parser.expression.expression import Expression
 from atoms import Atom
+from dcp_parser.error_messages.dcp_violation_factory import DCPViolationFactory
 # Methods to create a dict of atomic functions
 
 # For a given atomic class creates a function that takes in arguments,
@@ -19,7 +20,12 @@ def make_atomic_func(atomic_class):
         for i in range(1,len(args)):
             name += ", " + str(args[i])
         name += ")"
-        return Expression(instance.curvature(), instance.sign(), name, args)
+
+        errors = DCPViolationFactory.composition_error(instance.signed_curvature(), 
+                                                instance.monotonicity(),
+                                                instance.argument_curvatures())
+        return Expression(instance.curvature(), instance.sign(), name, args, 
+                          errors = errors)
     return atomic_func
 
 # Creates a dict mapping atomic function names to generated atomic functions.

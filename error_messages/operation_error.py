@@ -1,10 +1,10 @@
 import settings
 import dcp_parser.expression.settings as EXP_SET
+from dcp_violation import DCPViolation
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.expression.sign import Sign
-from dcp_parser.atomic.monotonicity import Monotonicity
 
-class OperationError(object):
+class OperationError(DCPViolation):
     """ Represents a DCP violation through arithmetic operations. """
     BASE_MSG = "Illegal operation: "
 
@@ -16,8 +16,8 @@ class OperationError(object):
     # Generates the appropriate error message given the curvature of the
     # lefthand and righthand expressions.
     def generate_error_str(self):
-        lh_str = str(self.lh_exp.curvature).lower()
-        rh_str = str(self.rh_exp.curvature).lower()
+        lh_str = OperationError.type_to_name(self.lh_exp.curvature)
+        rh_str = OperationError.type_to_name(self.rh_exp.curvature)
 
         # Sign can cause an error when a constant with unknown sign is
         # multiplied by or divides a convex or concave expression.

@@ -6,7 +6,7 @@ from sign import Sign
 from curvature import Curvature
 from sys import maxint
 from numbers import Number
-from dcp_parser.error_messages.dcp_violation import DCPViolation
+from dcp_parser.error_messages.dcp_violation_factory import DCPViolationFactory
 
 class Expression(object):
     """
@@ -66,7 +66,7 @@ class Expression(object):
                           [self,other],
                           settings.PRIORITY_MAP[settings.PLUS])
         exp.impute_parens()
-        exp.errors = DCPViolation.operation_error(settings.PLUS, self, other, exp)
+        exp.errors = DCPViolationFactory.operation_error(settings.PLUS, self, other, exp)
         return exp
 
     # Called if var + Expression not implemented, with arguments reversed.
@@ -81,7 +81,7 @@ class Expression(object):
                           [self,other],
                           settings.PRIORITY_MAP[settings.MINUS])
         exp.impute_parens()
-        exp.errors = DCPViolation.operation_error(settings.MINUS, self, other, exp)
+        exp.errors = DCPViolationFactory.operation_error(settings.MINUS, self, other, exp)
         return exp
 
     # Called if var - Expression not implemented, with arguments reversed.
@@ -112,7 +112,7 @@ class Expression(object):
                          settings.PRIORITY_MAP[settings.MULT])
         exp.sign_by_curvature()
         exp.impute_parens()
-        exp.errors = DCPViolation.operation_error(settings.MULT, self, other, exp)
+        exp.errors = DCPViolationFactory.operation_error(settings.MULT, self, other, exp)
         return exp
 
     # Called if var * Expression not implemented, with arguments reversed.
@@ -130,7 +130,7 @@ class Expression(object):
                          settings.PRIORITY_MAP[settings.DIV])
         exp.sign_by_curvature()
         exp.impute_parens()
-        exp.errors = DCPViolation.operation_error(settings.DIV, self, other, exp)
+        exp.errors = DCPViolationFactory.operation_error(settings.DIV, self, other, exp)
         return exp
 
     # Called if var / Expression not implemented, with arguments reversed.
@@ -143,6 +143,7 @@ class Expression(object):
                           '-' + str(self), 
                           [self])
     
+    # TODO cleanup
     # def __le__(self,other):
     #     if iscvx(self) and isccv(other):
     #         return LeqConstraint(self,other)

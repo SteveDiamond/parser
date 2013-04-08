@@ -19,14 +19,21 @@ class Atom(object):
 
     # Determines curvature from args and sign.
     def curvature(self):
-        curvature = self.signed_curvature(self.sign())
+        curvature = self.signed_curvature()
         return Atom.dcp_curvature(curvature, self.args, self.monotonicity())
+
+    # Returns argument curvatures as a list.
+    def argument_curvatures(self):
+        curvatures = []
+        for arg in self.args:
+            curvatures.append(arg.curvature)
+        return curvatures
 
     # Determines curvature from sign, e.g. x^3 is convex for positive x
     # and concave for negative x.
     # Usually result will not depend on sign.
     @abc.abstractmethod
-    def signed_curvature(self, sign):
+    def signed_curvature(self):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.
@@ -71,7 +78,7 @@ class Square(Atom):
         return Sign.POSITIVE
 
     # Always convex
-    def signed_curvature(self, sign):
+    def signed_curvature(self):
         return Curvature.CONVEX
 
     # Increasing (decreasing) for positive (negative) argument.
@@ -87,7 +94,7 @@ class Log_sum_exp(Atom):
         return Sign.UNKNOWN
 
     # Always convex
-    def signed_curvature(self, sign):
+    def signed_curvature(self):
         return Curvature.CONVEX
 
     # Always increasing.
@@ -112,7 +119,7 @@ class Max(Atom):
             return Sign.NEGATIVE
 
     # Always convex
-    def signed_curvature(self, sign):
+    def signed_curvature(self):
         return Curvature.CONVEX
 
     # Always increasing.
@@ -133,7 +140,7 @@ class Log(Atom):
         return Sign.UNKNOWN
 
     # Always concave
-    def signed_curvature(self, sign):
+    def signed_curvature(self):
         return Curvature.CONCAVE
 
     # Always increasing.

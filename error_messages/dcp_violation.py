@@ -1,33 +1,24 @@
+import abc
 from dcp_parser.expression.curvature import Curvature
-from dcp_parser.expression.sign import Sign
 from dcp_parser.atomic.monotonicity import Monotonicity
-from operation_error import OperationError
 
 class DCPViolation(object):
-    """ Factory class for OperationError and CompositionError. """
+    """ Abstract base class for DCP Violations. """
+    __metaclass__ = abc.ABCMeta
 
-    # Returns an OperationError if the operation resulted in 
-    # a non-convex expression.
+    # Maps curvature and monotonicity to the error message name.
+    TYPE_TO_NAME = {
+                str(Curvature.CONSTANT): 'constant',
+                str(Curvature.AFFINE): 'affine',
+                str(Curvature.CONVEX): 'convex',
+                str(Curvature.CONCAVE): 'concave',
+                str(Curvature.NONCONVEX): 'non-convex',
+                str(Monotonicity.INCREASING): 'non-decreasing',
+                str(Monotonicity.DECREASING): 'non-increasing',
+                str(Monotonicity.NONMONOTONIC): 'non-monotonic',
+                }
+
+    # Maps curvature and monotonicity to the error message name.
     @staticmethod
-    def operation_error(op_str, lh_exp, rh_exp, result_exp):
-        if result_exp.curvature == Curvature.NONCONVEX:
-            return [OperationError(op_str, lh_exp, rh_exp)]
-        else:
-            return None
-
-    # Returns a list with a CompositionError for each argument that 
-    # violates DCP composition rules, i.e. produces a non-convex composition.
-    @staticmethod
-    def composition_error(func_curvature, func_monotonicities, arg_curvatures):
-        errors = []
-        for i in range(func_monotonicities):
-            monotonicity = func_monotonicities[i]
-            curvature = monotonicity.dcp_curvature(func_curvature, arg_curvatures[i])
-            if curvature == Curvature.NONCONVEX:
-                err = CompositionError(func_curvature, monotonicity, arg_curvatures[i], i)
-                errors.append(err)
-
-        if len(errors) == 0:
-            return None
-        else:
-            return errors
+    def type_to_name(type):
+        return DCPViolation.TYPE_TO_NAME[str(type)]
