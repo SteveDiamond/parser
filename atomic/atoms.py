@@ -1,7 +1,7 @@
 """ Definitions of atomic functions """
 import abc
 from dcp_parser.expression.sign import Sign
-from dcp_parser.expression.vexity import Vexity
+from dcp_parser.expression.curvature import Curvature
 from dcp_parser.atomic.monotonicity import Monotonicity
 
 class Atom(object):
@@ -17,30 +17,30 @@ class Atom(object):
     def sign(self):
         return NotImplemented
 
-    # Determines vexity from args and sign.
-    def vexity(self):
-        vexity = self.signed_vexity(self.sign())
-        return Atom.dcp_vexity(vexity, self.args, self.monotonicity())
+    # Determines curvature from args and sign.
+    def curvature(self):
+        curvature = self.signed_curvature(self.sign())
+        return Atom.dcp_curvature(curvature, self.args, self.monotonicity())
 
-    # Determines vexity from sign, e.g. x^3 is convex for positive x
+    # Determines curvature from sign, e.g. x^3 is convex for positive x
     # and concave for negative x.
     # Usually result will not depend on sign.
     @abc.abstractmethod
-    def signed_vexity(self, sign):
+    def signed_curvature(self, sign):
         return NotImplemented
 
     # Returns a list with the monotonicity in each argument.
-    # Montonicity can depend on the sign of the argument.
+    # Monotonicity can depend on the sign of the argument.
     @abc.abstractmethod
     def monotonicity(self):
         return NotImplemented
 
     """
-    Applies DCP composition rules to determine vexity in each argument.
-    The overall vexity is the sum of the argument vexities.
+    Applies DCP composition rules to determine curvature in each argument.
+    The overall curvature is the sum of the argument vexities.
     """
     @staticmethod
-    def dcp_vexity(vexity, args, monotonicities):
+    def dcp_curvature(curvature, args, monotonicities):
         if len(args) == 0 or len(args) != len(monotonicities):
             raise Exception('The number of args must be non-zero and'
                             ' equal to the number of monotonicities.')
@@ -48,11 +48,11 @@ class Atom(object):
         for i in range(len(args)):
             monotonicity = monotonicities[i]
             arg = args[i]
-            arg_vexities.append(monotonicity.dcp_vexity(vexity, arg.vexity))
-        final_vexity = arg_vexities[0]
+            arg_vexities.append(monotonicity.dcp_curvature(curvature, arg.curvature))
+        final_curvature = arg_vexities[0]
         for vex in arg_vexities:
-            final_vexity = final_vexity + vex
-        return final_vexity
+            final_curvature = final_curvature + vex
+        return final_curvature
 
 class Square(Atom):
     """ Squares a single argument. """
@@ -71,8 +71,8 @@ class Square(Atom):
         return Sign.POSITIVE
 
     # Always convex
-    def signed_vexity(self, sign):
-        return Vexity.CONVEX
+    def signed_curvature(self, sign):
+        return Curvature.CONVEX
 
     # Increasing (decreasing) for positive (negative) argument.
     def monotonicity(self):
@@ -87,8 +87,8 @@ class Log_sum_exp(Atom):
         return Sign.UNKNOWN
 
     # Always convex
-    def signed_vexity(self, sign):
-        return Vexity.CONVEX
+    def signed_curvature(self, sign):
+        return Curvature.CONVEX
 
     # Always increasing.
     def monotonicity(self):
@@ -112,8 +112,8 @@ class Max(Atom):
             return Sign.NEGATIVE
 
     # Always convex
-    def signed_vexity(self, sign):
-        return Vexity.CONVEX
+    def signed_curvature(self, sign):
+        return Curvature.CONVEX
 
     # Always increasing.
     def monotonicity(self):
@@ -133,8 +133,8 @@ class Log(Atom):
         return Sign.UNKNOWN
 
     # Always concave
-    def signed_vexity(self, sign):
-        return Vexity.CONCAVE
+    def signed_curvature(self, sign):
+        return Curvature.CONCAVE
 
     # Always increasing.
     def monotonicity(self):

@@ -1,4 +1,4 @@
-from dcp_parser.expression.vexity import Vexity
+from dcp_parser.expression.curvature import Curvature
 
 class Monotonicity(object):
     """ Monotonicity of atomic functions in a given argument. """
@@ -21,11 +21,11 @@ class Monotonicity(object):
         return self.monotonicity_str
     
     """
-    Applies DCP composition rules to determine vexity in each argument.
+    Applies DCP composition rules to determine curvature in each argument.
     Composition rules:
-        Key: Function vexity + monotonicity + argument vexity == vexity in argument
+        Key: Function curvature + monotonicity + argument curvature == curvature in argument
         anything + anything + constant == constant
-        anything + anything + affine == original vexity
+        anything + anything + affine == original curvature
         convex/affine + increasing + convex == convex
         convex/affine + decreasing + concave == convex
         concave/affine + increasing + concave == concave
@@ -33,17 +33,17 @@ class Monotonicity(object):
     Notes: Increasing (decreasing) means non-decreasing (non-increasing).
         Any combinations not covered by the rules result in a nonconvex expression.
     """
-    def dcp_vexity(self, func_vexity, arg_vexity):
-        if arg_vexity == Vexity.CONSTANT:
-            return arg_vexity
-        elif arg_vexity == Vexity.AFFINE:
-            return func_vexity
+    def dcp_curvature(self, func_curvature, arg_curvature):
+        if arg_curvature == Curvature.CONSTANT:
+            return arg_curvature
+        elif arg_curvature == Curvature.AFFINE:
+            return func_curvature
         elif self.monotonicity_str == Monotonicity.INCREASING_KEY:
-            return func_vexity + arg_vexity
+            return func_curvature + arg_curvature
         elif self.monotonicity_str == Monotonicity.DECREASING_KEY:
-            return func_vexity - arg_vexity
+            return func_curvature - arg_curvature
         else: # non-monotonic
-            return Vexity.NONCONVEX
+            return Curvature.NONCONVEX
 
 # Class constants for all monotonicity types.
 Monotonicity.INCREASING = Monotonicity(Monotonicity.INCREASING_KEY)

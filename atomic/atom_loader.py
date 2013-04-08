@@ -4,7 +4,7 @@ from atoms import Atom
 
 # For a given atomic class creates a function that takes in arguments,
 # passes them to the class constructor, and returns an Expression
-# based on the class sign and vexity.
+# based on the class sign and curvature.
 def make_atomic_func(atomic_class):
     def atomic_func(*args):
         instance = atomic_class(*args)
@@ -19,7 +19,7 @@ def make_atomic_func(atomic_class):
         for i in range(1,len(args)):
             name += ", " + str(args[i])
         name += ")"
-        return Expression(instance.vexity(), instance.sign(), name, args)
+        return Expression(instance.curvature(), instance.sign(), name, args)
     return atomic_func
 
 # Creates a dict mapping atomic function names to generated atomic functions.

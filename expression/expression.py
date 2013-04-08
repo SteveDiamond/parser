@@ -1,34 +1,31 @@
 # from utils import error_msg, id_wrapper, \
 #     isunknown, ispositive, isnegative, \
 #     isaff, iscvx, isccv, ismatrix, isscalar, isvector   
+import settings
 from sign import Sign
-from vexity import Vexity
+from curvature import Curvature
 from sys import maxint
 from numbers import Number
+from dcp_parser.error_messages.dcp_violation import DCPViolation
 
 class Expression(object):
     """
     A convex optimization expression.
-    Records sign, vexity, string representation, and component expressions.
+    Records sign, curvature, string representation, and component expressions.
     The component expressions can be used to reconstruct the parse tree.
 
     Priority is the order of operations priority of the binary operation that
     created the expression (if any). It is used to reconstruct parentheses.
     """
-
-    # Constants for computing priority.
-    MULT = ' * '
-    DIV = ' / '
-    PLUS = ' + '
-    MINUS = ' - '
-    PRIORITY_MAP = {MULT: 2, DIV: 2, PLUS: 1, MINUS: 1}
     
-    def __init__(self, vexity, sign, name, subexpressions = None, priority = maxint):
-        self.vexity = vexity
+    def __init__(self, curvature, sign, name, 
+                 subexpressions = None, priority = maxint, errors = None):
+        self.curvature = curvature
         self.sign = sign
         self.name = name
         self.subexpressions = subexpressions
         self.priority = priority
+        self.errors = errors
 
     # Determines whether the subexpressions of a expression constructed
     # by a binary relation should be parenthesized.
@@ -63,56 +60,59 @@ class Expression(object):
     
     def __add__(self, other):
         other = Expression.type_check(other)
-        exp = Expression(self.vexity + other.vexity,
+        exp = Expression(self.curvature + other.curvature,
                           self.sign + other.sign,
-                          Expression.PLUS, 
+                          settings.PLUS, 
                           [self,other],
-                          Expression.PRIORITY_MAP[Expression.PLUS])
+                          settings.PRIORITY_MAP[settings.PLUS])
         exp.impute_parens()
+        exp.errors = DCPViolation.operation_error(settings.PLUS, self, other, exp)
         return exp
 
     # Called if var + Expression not implemented, with arguments reversed.
     def __radd__(self, other):
-        return Expression.type_check(other) + self
+        return settings.type_check(other) + self
     
     def __sub__(self, other):
         other = Expression.type_check(other)
-        exp = Expression(self.vexity - other.vexity,
+        exp = Expression(self.curvature - other.curvature,
                           self.sign - other.sign,
-                          Expression.MINUS, 
+                          settings.MINUS, 
                           [self,other],
-                          Expression.PRIORITY_MAP[Expression.MINUS])
+                          settings.PRIORITY_MAP[settings.MINUS])
         exp.impute_parens()
+        exp.errors = DCPViolation.operation_error(settings.MINUS, self, other, exp)
         return exp
 
     # Called if var - Expression not implemented, with arguments reversed.
     def __rsub__(self, other):
         return Expression.type_check(other) - self
 
-    # Adjust vexity based on sign of subexpressions.
+    # Adjust curvature based on sign of subexpressions.
     # Used for multiplication and division.
-    # Only constant expressions can change the vexity,
+    # Only constant expressions can change the curvature,
     # e.g. negative constant * convex == concave
-    # For multiplication by non-constants, the vexity
+    # For multiplication by non-constants, the curvature
     # is always nonconvex.
-    def sign_by_vexity(self):
+    def sign_by_curvature(self):
         for i in range(len(self.subexpressions)):
-            vexity = self.subexpressions[i].vexity
+            curvature = self.subexpressions[i].curvature
             sign = self.subexpressions[i].sign
-            if vexity == Vexity.CONSTANT:
-                self.vexity = self.vexity.sign_mult(sign)
+            if curvature == Curvature.CONSTANT:
+                self.curvature = self.curvature.sign_mult(sign)
 
     def __mul__(self, other):
         other = Expression.type_check(other)
         sign = self.sign * other.sign
-        vexity = self.vexity * other.vexity
-        exp = Expression(vexity, 
+        curvature = self.curvature * other.curvature
+        exp = Expression(curvature, 
                          sign, 
-                         Expression.MULT, 
+                         settings.MULT, 
                          [self,other],
-                         Expression.PRIORITY_MAP[Expression.MULT])
-        exp.sign_by_vexity()
+                         settings.PRIORITY_MAP[settings.MULT])
+        exp.sign_by_curvature()
         exp.impute_parens()
+        exp.errors = DCPViolation.operation_error(settings.MULT, self, other, exp)
         return exp
 
     # Called if var * Expression not implemented, with arguments reversed.
@@ -122,14 +122,15 @@ class Expression(object):
     def __div__(self, other):
         other = Expression.type_check(other)
         sign = self.sign / other.sign
-        vexity = self.vexity / other.vexity
-        exp = Expression(vexity, 
+        curvature = self.curvature / other.curvature
+        exp = Expression(curvature, 
                          sign, 
-                         Expression.DIV, 
+                         settings.DIV, 
                          [self,other],
-                         Expression.PRIORITY_MAP[Expression.DIV])
-        exp.sign_by_vexity()
+                         settings.PRIORITY_MAP[settings.DIV])
+        exp.sign_by_curvature()
         exp.impute_parens()
+        exp.errors = DCPViolation.operation_error(settings.DIV, self, other, exp)
         return exp
 
     # Called if var / Expression not implemented, with arguments reversed.
@@ -137,7 +138,7 @@ class Expression(object):
         return Expression.type_check(other) / self
         
     def __neg__(self):
-        return Expression(-self.vexity,
+        return Expression(-self.curvature,
                           -self.sign,
                           '-' + str(self), 
                           [self])
@@ -146,19 +147,19 @@ class Expression(object):
     #     if iscvx(self) and isccv(other):
     #         return LeqConstraint(self,other)
     #     else:
-    #         raise Exception("Cannot have '%s <= %s'" % (self.vexity_names[self.vexity], other.vexity_names[self.vexity]))
+    #         raise Exception("Cannot have '%s <= %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
     
     # def __ge__(self,other):
     #     if isccv(self) and iscvx(other):
     #         return GeqConstraint(self,other)
     #     else:
-    #         raise Exception("Cannot have '%s >= %s'" % (self.vexity_names[self.vexity], other.vexity_names[self.vexity]))
+    #         raise Exception("Cannot have '%s >= %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
     
     # def __eq__(self,other):
     #     if isaff(self) and isaff(other):
     #         return EqConstraint(self,other)
     #     else:
-    #         raise Exception("Cannot have '%s == %s'" % (self.vexity_names[self.vexity], other.vexity_names[self.vexity]))
+    #         raise Exception("Cannot have '%s == %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
             
     def __lt__(self, other): return NotImplemented
     def __gt__(self, other): return NotImplemented
@@ -166,7 +167,7 @@ class Expression(object):
     
     def __repr__(self):
         """Representation in Python"""
-        return "Expression(%s, %s, %s, %s)" % (self.vexity, 
+        return "Expression(%s, %s, %s, %s)" % (self.curvature, 
                                                self.sign, 
                                                self.name, 
                                                self.subexpressions)
@@ -179,7 +180,7 @@ class Expression(object):
 class Variable(Expression):
     """ A convex optimization variable. """
     def __init__(self, name):
-        super(Variable, self).__init__(Vexity.AFFINE,
+        super(Variable, self).__init__(Curvature.AFFINE,
                                        Sign.UNKNOWN,
                                        name)
     
@@ -192,7 +193,7 @@ class Variable(Expression):
 class Parameter(Expression):
     """ A convex optimization parameter. """
     def __init__(self, name, sign):
-        super(Parameter, self).__init__(Vexity.CONSTANT,
+        super(Parameter, self).__init__(Curvature.CONSTANT,
                                         sign,
                                         name)      
     def __repr__(self):
@@ -210,7 +211,7 @@ class Constant(Expression):
             sign_str = Sign.ZERO_KEY
         else:
             sign_str = Sign.NEGATIVE_KEY
-        super(Constant, self).__init__(Vexity.CONSTANT, 
+        super(Constant, self).__init__(Curvature.CONSTANT, 
                                        Sign(sign_str),
                                        str(value))
         

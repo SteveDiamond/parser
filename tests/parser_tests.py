@@ -1,5 +1,5 @@
 from dcp_parser.parser import Parser
-from dcp_parser.expression.vexity import Vexity
+from dcp_parser.expression.curvature import Curvature
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.expression import *
 from nose.tools import assert_equals
@@ -13,7 +13,7 @@ class TestParser(object):
           exp = 'variable x'
           self.parser.parse(exp)
           assert 'x' in self.parser.symbol_table
-          assert_equals(self.parser.symbol_table['x'].vexity, Vexity.AFFINE)
+          assert_equals(self.parser.symbol_table['x'].curvature, Curvature.AFFINE)
 
           exp = ' variable  y    z '
           self.parser.parse(exp)
@@ -24,7 +24,7 @@ class TestParser(object):
           exp = 'parameter x'
           self.parser.parse(exp)
           assert 'x' in self.parser.symbol_table
-          assert_equals(self.parser.symbol_table['x'].vexity, Vexity.CONSTANT)
+          assert_equals(self.parser.symbol_table['x'].curvature, Curvature.CONSTANT)
           assert_equals(self.parser.symbol_table['x'].sign, Sign.UNKNOWN)
 
           exp = ' parameter negative  y    z '
@@ -43,12 +43,12 @@ class TestParser(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, Vexity.CONSTANT)
+          assert_equals(result.curvature, Curvature.CONSTANT)
           assert_equals(result.sign, Sign.ZERO)
 
           rh_exp = result.subexpressions[1]
           assert_equals('a * x + d * (y / b - z)', str(rh_exp))
-          assert_equals(rh_exp.vexity, Vexity.AFFINE)
+          assert_equals(rh_exp.curvature, Curvature.AFFINE)
 
       # Test parser with numeric constants
       def test_constants_eval(self):
@@ -59,7 +59,7 @@ class TestParser(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, Vexity.CONSTANT)
+          assert_equals(result.curvature, Curvature.CONSTANT)
           assert_equals(result.sign, Sign.POSITIVE)
 
       # Test parser with atoms
@@ -71,19 +71,19 @@ class TestParser(object):
 
           result = self.parser.expressions[0]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, Vexity.CONVEX)
+          assert_equals(result.curvature, Curvature.CONVEX)
           assert_equals(result.sign, Sign.UNKNOWN)
 
           expression = '-square(square(u)) - max(square(v), c)'
           self.parser.parse(expression)
           result = self.parser.expressions[1]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, Vexity.CONCAVE)
+          assert_equals(result.curvature, Curvature.CONCAVE)
           assert_equals(result.sign, Sign.NEGATIVE)
 
           expression = 'c * square(log(u)) + max(c, log_sum_exp(max(u, v), c))'
           self.parser.parse(expression)
           result = self.parser.expressions[2]
           assert_equals(expression, str(result))
-          assert_equals(result.vexity, Vexity.NONCONVEX)
+          assert_equals(result.curvature, Curvature.NONCONVEX)
           assert_equals(result.sign, Sign.POSITIVE)

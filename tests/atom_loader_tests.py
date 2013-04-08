@@ -7,18 +7,18 @@ class TestAtomLoader(object):
     """ Unit tests for the atomic/atom_loader module. """
     @classmethod
     def setup_class(self):
-        self.cvx_pos = Expression(Vexity.CONVEX, Sign.POSITIVE, 'cvx_pos')
+        self.cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
 
     # Test creation of functions from atom classes.
     def test_make_atomic_func(self):
         square = make_atomic_func(Square)
         exp = square(self.cvx_pos)
-        assert_equals(exp.vexity, Vexity.CONVEX)
+        assert_equals(exp.curvature, Curvature.CONVEX)
         assert_equals(str(exp), 'square(cvx_pos)')
 
         max = make_atomic_func(Max)
         exp = max(self.cvx_pos, Variable('x'), Constant(-1))
-        assert_equals(exp.vexity, Vexity.CONVEX)
+        assert_equals(exp.curvature, Curvature.CONVEX)
         assert_equals(str(exp), 'max(cvx_pos, x, -1)')
 
     # Test creation of atom dict

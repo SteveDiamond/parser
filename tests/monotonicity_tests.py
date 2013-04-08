@@ -1,4 +1,4 @@
-from dcp_parser.expression.vexity import Vexity
+from dcp_parser.expression.curvature import Curvature
 from dcp_parser.atomic.monotonicity import Monotonicity
 from nose.tools import *
 
@@ -8,17 +8,17 @@ class TestMonotonicity(object):
     def setup_class(self):
         pass
 
-    # Test application of DCP composition rules to determine vexity.
-    def test_dcp_vexity(self):
-        assert_equals(Monotonicity.INCREASING.dcp_vexity(Vexity.AFFINE, Vexity.CONVEX), Vexity.CONVEX)
-        assert_equals(Monotonicity.NONMONOTONIC.dcp_vexity(Vexity.AFFINE, Vexity.AFFINE), Vexity.AFFINE)
-        assert_equals(Monotonicity.DECREASING.dcp_vexity(Vexity.NONCONVEX, Vexity.CONSTANT), Vexity.CONSTANT)
+    # Test application of DCP composition rules to determine curvature.
+    def test_dcp_curvature(self):
+        assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.AFFINE, Curvature.CONVEX), Curvature.CONVEX)
+        assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.AFFINE, Curvature.AFFINE), Curvature.AFFINE)
+        assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.NONCONVEX, Curvature.CONSTANT), Curvature.CONSTANT)
 
-        assert_equals(Monotonicity.INCREASING.dcp_vexity(Vexity.CONVEX, Vexity.CONVEX), Vexity.CONVEX)
-        assert_equals(Monotonicity.DECREASING.dcp_vexity(Vexity.CONVEX, Vexity.CONCAVE), Vexity.CONVEX)
+        assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONVEX, Curvature.CONVEX), Curvature.CONVEX)
+        assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.CONVEX, Curvature.CONCAVE), Curvature.CONVEX)
 
-        assert_equals(Monotonicity.INCREASING.dcp_vexity(Vexity.CONCAVE, Vexity.CONCAVE), Vexity.CONCAVE)
-        assert_equals(Monotonicity.DECREASING.dcp_vexity(Vexity.CONCAVE, Vexity.CONVEX), Vexity.CONCAVE)
+        assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE, Curvature.CONCAVE), Curvature.CONCAVE)
+        assert_equals(Monotonicity.DECREASING.dcp_curvature(Curvature.CONCAVE, Curvature.CONVEX), Curvature.CONCAVE)
 
-        assert_equals(Monotonicity.INCREASING.dcp_vexity(Vexity.CONCAVE, Vexity.CONVEX), Vexity.NONCONVEX)
-        assert_equals(Monotonicity.NONMONOTONIC.dcp_vexity(Vexity.CONCAVE, Vexity.AFFINE), Vexity.CONCAVE)
+        assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE, Curvature.CONVEX), Curvature.NONCONVEX)
+        assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONCAVE, Curvature.AFFINE), Curvature.CONCAVE)
