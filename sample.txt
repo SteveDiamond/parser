@@ -1,0 +1,5 @@
+variable x y z
+parameter positive a
+parameter negative b
+a*square(square(x)) + b*log(y)
+log_sum_exp(a*x, max(b, -a*log(y)))) + a*z/b
