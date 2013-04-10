@@ -77,3 +77,51 @@ class TestAtoms(object):
     def test_log(self):
         assert_equals(Log(self.conc_exp).curvature(), Curvature.CONCAVE)
         assert_raises(Exception, Log, Constant(-2))
+
+    def test_quad_over_lin(self):
+        cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
+        conc_neg = Expression(Curvature.CONCAVE, Sign.NEGATIVE, 'cvx_pos')
+
+        assert_equals(Quad_over_lin(cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Quad_over_lin(conc_neg, self.conc_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.cvx_exp, self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_raises(Exception, Quad_over_lin, Constant(2), Constant(-2))
+
+    def test_min(self):
+        conc_pos = Expression(Curvature.CONCAVE, Sign.POSITIVE, 'cvx_pos')
+        conc_neg = Expression(Curvature.CONCAVE, Sign.NEGATIVE, 'cvx_pos')
+        assert_equals(Min(conc_pos, conc_neg).sign(), Sign.NEGATIVE)
+        assert_equals(Min(conc_pos, conc_neg).curvature(), Curvature.CONCAVE)
+
+        assert_equals(Min(Constant(0), conc_pos).sign(), Sign.ZERO)
+        assert_equals(Min(self.cvx_exp).curvature(), Curvature.NONCONVEX)
+
+        assert_equals(Min(Variable('a'), Constant(-2)).sign(), Sign.NEGATIVE)
+
+    def test_sum(self):
+        assert_equals(Sum(Constant(2), Constant(0)).sign(), Sign.POSITIVE)
+        assert_equals(Sum(self.cvx_exp, self.cvx_exp, self.aff_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Sum(self.conc_exp, self.cvx_exp, self.aff_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum(Constant(2), Constant(0), self.aff_exp).curvature(), Curvature.AFFINE)
+
+    def test_geo_mean(self):
+        assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).curvature(), Curvature.CONCAVE)
+        assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).sign(), Sign.POSITIVE)
+        assert_equals(Geo_mean(self.conc_exp, self.aff_exp, self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_raises(Exception, Geo_mean, Constant(-2))
+
+    def test_sqrt(self):
+        assert_equals(Sqrt(self.conc_exp).curvature(), Curvature.CONCAVE)
+        assert_equals(Sqrt(self.aff_exp).sign(), Sign.POSITIVE)
+        assert_equals(Sqrt(self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_raises(Exception, Sqrt, Constant(-2))
+
+    def test_log_normcdf(self):
+        assert_equals(Log_normcdf(self.conc_exp).curvature(), Curvature.CONCAVE)
+        assert_equals(Log_normcdf(self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Log_normcdf(self.cvx_exp).sign(), Sign.UNKNOWN)
+
+    def test_exp(self):
+        assert_equals(Exp(self.cvx_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Exp(self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Exp(self.cvx_exp).sign(), Sign.POSITIVE)

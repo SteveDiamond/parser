@@ -6,4 +6,6 @@ parameter negative b
 a*square(square(x)) + b*log(y)
 log_sum_exp(a*x, max(b, -a*log(y))) + a*z/b
 # Invalid
-square(log(z)) - log_sum_exp(2*x*z, -square(y)) + (max(x,3) + log(y))
+log(square(z)) - log_sum_exp(2*x*z, -square(y)) + (max(x,3) + log(y))
+# Test
+log_sum_exp(square(x),-log(y + a*x), 0*z*y)

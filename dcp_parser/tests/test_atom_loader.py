@@ -24,5 +24,5 @@ class TestAtomLoader(object):
     # Test creation of atom dict
     def test_generate_atom_dict(self):
         atom_dict = generate_atom_dict()
-        assert_equals(len(atom_dict), len(Atom.__subclasses__()))
+        assert_equals(len(atom_dict), len(get_subclasses(Atom)))
         assert('square' in atom_dict)

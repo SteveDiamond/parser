@@ -8,7 +8,7 @@ class Parser(object):
     Permitted expressions:
       variable x y z ...
       parameter (SIGN) a b c ...
-      Any constraint, objective, or assignment.
+      Any constraint or objective.
     """
     # Keywords
     VARIABLE_KEYWORD = 'variable'

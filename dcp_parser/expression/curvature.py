@@ -45,6 +45,14 @@ class Curvature(object):
         for key,val in Curvature.VEXITY_MAP.items():
             if val == curvature_val:
                 return Curvature(key)
+
+    # Sums list of curvatures
+    @staticmethod
+    def sum(curvatures):
+        sum_curvature = Curvature.CONSTANT
+        for curvature in curvatures:
+            sum_curvature = sum_curvature + curvature
+        return sum_curvature
     
     def __sub__(self, other):
         return self + -other

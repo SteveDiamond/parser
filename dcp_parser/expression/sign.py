@@ -21,6 +21,13 @@ class Sign(object):
     def is_sign(sign_str):
         return sign_str in Sign.SIGN_MAP.keys()
 
+    # Sums list of signs
+    @staticmethod
+    def sum(signs):
+        sum_sign = Sign.ZERO
+        for sign in signs:
+            sum_sign = sum_sign + sign
+        return sum_sign
         
     def __add__(self, other):
         sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
