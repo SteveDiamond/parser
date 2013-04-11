@@ -257,3 +257,47 @@ class Exp(Atom):
     # Always increasing.
     def monotonicity(self):
         return [Monotonicity.INCREASING]
+
+class Norm(Atom):
+    """ 
+    The p-norm for a vector (list of scalar values)
+    Use:  Norm(p, *args)
+    p can be either a number greater than or equal to 1 or 'Inf'
+    """
+    # Sign of first argument to monotonicity in first argument.
+    SIGN_TO_MONOTONICITY = {
+                            str(Sign.POSITIVE): Monotonicity.INCREASING,
+                            str(Sign.ZERO): Monotonicity.INCREASING,
+                            str(Sign.NEGATIVE): Monotonicity.DECREASING,
+                            str(Sign.UNKNOWN): Monotonicity.NONMONOTONIC
+                            }
+
+    def __init__(self, p, *vector):
+        super(Norm,self).__init__(*vector)
+        # Throws error if p is invalid.
+        if not ( (isinstance(p, Number) and p >= 1) or p == 'Inf'):
+            raise Exception('Invalid Norm %s' % p)
+
+    # Always positive
+    def sign(self):
+        return Sign.POSITIVE
+
+    # Always convex
+    def signed_curvature(self):
+        return Curvature.CONVEX
+
+    # Increasing (decreasing) for positive (negative) argument.
+    def monotonicity(self):
+        monotonicities = []
+        for scalar in self.args:
+            sign_str = str(scalar.sign)
+            monotonicity = Norm.SIGN_TO_MONOTONICITY[sign_str]
+            monotonicities.append(monotonicity)
+        return monotonicities
+
+class Abs(Norm):
+    """ Absolute value of one scalar argument. """
+    def __init__(self, x):
+        super(Abs,self).__init__(1,x)
+
+

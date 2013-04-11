@@ -29,6 +29,7 @@ class Curvature(object):
     UNKNOWN_MAP = {CONVEX_KEY: NONCONVEX_KEY, CONCAVE_KEY: NONCONVEX_KEY}
     
     def __init__(self,curvature_str):
+        curvature_str = curvature_str.upper()
         if curvature_str in Curvature.VEXITY_MAP.keys():
             self.curvature_str = curvature_str
         else:

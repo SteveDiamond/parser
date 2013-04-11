@@ -68,7 +68,7 @@ class Expression(object):
         else:
             raise Exception("Illegal operation on object %s. Object must be of "
                             "type number or Expression, but is type %s."
-                            % (str(other), other.__class__.__name__))
+                            % (str(expression), expression.__class__.__name__))
     
     def __add__(self, other):
         self = Expression.type_check(self)

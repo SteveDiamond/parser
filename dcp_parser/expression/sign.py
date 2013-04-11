@@ -11,6 +11,7 @@ class Sign(object):
     ORDERING = [NEGATIVE_KEY, ZERO_KEY, UNKNOWN_KEY, POSITIVE_KEY]
     
     def __init__(self,sign_str):
+        sign_str = sign_str.upper()
         if sign_str in Sign.SIGN_MAP.keys():
             self.sign_str = sign_str
         else:

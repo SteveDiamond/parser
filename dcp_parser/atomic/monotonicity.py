@@ -9,6 +9,7 @@ class Monotonicity(object):
     MONOTONICITY_SET = set([INCREASING_KEY, DECREASING_KEY, NONMONOTONIC_KEY])
 
     def __init__(self,monotonicity_str):
+        monotonicity_str = monotonicity_str.upper()
         if monotonicity_str in Monotonicity.MONOTONICITY_SET:
             self.monotonicity_str = monotonicity_str
         else:

@@ -23,6 +23,11 @@ class TestAtoms(object):
         self.conc_exp = Expression(self.concave, self.unknown, 'conc_exp')
         self.noncvx_exp = Expression(self.nonconvex, self.unknown, 'noncvx_exp')
 
+        self.cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
+        self.cvx_neg = Expression(Curvature.CONVEX, Sign.NEGATIVE, 'cvx_neg')
+        self.conc_pos = Expression(Curvature.CONCAVE, Sign.POSITIVE, 'conc_pos')
+        self.conc_neg = Expression(Curvature.CONCAVE, Sign.NEGATIVE, 'conc_neg')
+
         self.increasing = Monotonicity.INCREASING
         self.decreasing = Monotonicity.DECREASING
         self.nonmonotonic = Monotonicity.NONMONOTONIC
@@ -64,12 +69,10 @@ class TestAtoms(object):
         assert_equals(Log_sum_exp(self.conc_exp, self.cvx_exp).curvature(), self.nonconvex)
 
     def test_max(self):
-        cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
-        cvx_neg = Expression(Curvature.CONVEX, Sign.NEGATIVE, 'cvx_pos')
-        assert_equals(Max(cvx_pos, cvx_neg).sign(), Sign.POSITIVE)
-        assert_equals(Max(cvx_pos, cvx_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Max(self.cvx_pos, self.cvx_neg).sign(), Sign.POSITIVE)
+        assert_equals(Max(self.cvx_pos, self.cvx_neg).curvature(), Curvature.CONVEX)
 
-        assert_equals(Max(Constant(0), cvx_neg).sign(), Sign.ZERO)
+        assert_equals(Max(Constant(0), self.cvx_neg).sign(), Sign.ZERO)
         assert_equals(Max(self.conc_exp).curvature(), Curvature.NONCONVEX)
 
         assert_equals(Max(Variable('a'), Constant(2)).sign(), Sign.POSITIVE)
@@ -79,21 +82,16 @@ class TestAtoms(object):
         assert_raises(Exception, Log, Constant(-2))
 
     def test_quad_over_lin(self):
-        cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
-        conc_neg = Expression(Curvature.CONCAVE, Sign.NEGATIVE, 'cvx_pos')
-
-        assert_equals(Quad_over_lin(cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
-        assert_equals(Quad_over_lin(conc_neg, self.conc_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.conc_neg, self.conc_exp).curvature(), Curvature.CONVEX)
         assert_equals(Quad_over_lin(self.cvx_exp, self.conc_exp).curvature(), Curvature.NONCONVEX)
         assert_raises(Exception, Quad_over_lin, Constant(2), Constant(-2))
 
     def test_min(self):
-        conc_pos = Expression(Curvature.CONCAVE, Sign.POSITIVE, 'cvx_pos')
-        conc_neg = Expression(Curvature.CONCAVE, Sign.NEGATIVE, 'cvx_pos')
-        assert_equals(Min(conc_pos, conc_neg).sign(), Sign.NEGATIVE)
-        assert_equals(Min(conc_pos, conc_neg).curvature(), Curvature.CONCAVE)
+        assert_equals(Min(self.conc_pos, self.conc_neg).sign(), Sign.NEGATIVE)
+        assert_equals(Min(self.conc_pos, self.conc_neg).curvature(), Curvature.CONCAVE)
 
-        assert_equals(Min(Constant(0), conc_pos).sign(), Sign.ZERO)
+        assert_equals(Min(Constant(0), self.conc_pos).sign(), Sign.ZERO)
         assert_equals(Min(self.cvx_exp).curvature(), Curvature.NONCONVEX)
 
         assert_equals(Min(Variable('a'), Constant(-2)).sign(), Sign.NEGATIVE)
@@ -125,3 +123,19 @@ class TestAtoms(object):
         assert_equals(Exp(self.cvx_exp).curvature(), Curvature.CONVEX)
         assert_equals(Exp(self.conc_exp).curvature(), Curvature.NONCONVEX)
         assert_equals(Exp(self.cvx_exp).sign(), Sign.POSITIVE)
+
+    def test_norm(self):
+        assert_equals(Norm(1341.143, self.cvx_pos, self.aff_exp, self.const_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Norm(1341.143, self.cvx_pos, self.aff_exp, self.const_exp).sign(), Sign.POSITIVE)
+
+        assert_equals(Norm('Inf', self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Norm('Inf', self.cvx_neg).curvature(), Curvature.NONCONVEX)
+
+        assert_raises(Exception, Norm, 0, Constant(-2))
+        assert_raises(Exception, Norm, 'not inf', Constant(-2))
+
+    def test_abs(self):
+        assert_equals(Abs(self.aff_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Abs(self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Abs(self.cvx_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Abs(self.noncvx_exp).sign(), Sign.POSITIVE)

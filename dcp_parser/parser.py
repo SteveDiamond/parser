@@ -87,5 +87,5 @@ class Parser(object):
     def evaluate_expression(self, expression):
         # Merge atoms, variables, and parameters.
         local_vars = dict(self.symbol_table.items() + self.atom_dict.items())
-        # Restrict global namespace in eval for security.
+        # TODO replace this. Eval is insecure.
         return eval(expression, {"__builtins__": None}, local_vars)
