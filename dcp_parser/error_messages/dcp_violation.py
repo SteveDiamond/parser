@@ -1,5 +1,6 @@
 import abc
 from dcp_parser.expression.curvature import Curvature
+from dcp_parser.expression.sign import Sign
 from dcp_parser.atomic.monotonicity import Monotonicity
 
 class DCPViolation(object):
@@ -16,6 +17,10 @@ class DCPViolation(object):
                 str(Monotonicity.INCREASING): 'non-decreasing',
                 str(Monotonicity.DECREASING): 'non-increasing',
                 str(Monotonicity.NONMONOTONIC): 'non-monotonic',
+                str(Sign.POSITIVE): 'positive',
+                str(Sign.NEGATIVE): 'negative',
+                str(Sign.ZERO): 'zero',
+                str(Sign.UNKNOWN): 'unknown sign',
                 }
 
     # Maps curvature and monotonicity to the error message name.

@@ -77,7 +77,7 @@ class Parser(object):
     # Parses a convex optimization expression (i.e. objective, constraint, or assignment).
     # Adds evaluated expression to expressions list.
     def parse_expression(self, tokenized, expression):
-        # TODO assignment
+        # TODO constraints
         exp = self.evaluate_expression(expression)
         if isinstance(exp, Expression):
             self.expressions.append(exp)

@@ -22,3 +22,5 @@ class TestMonotonicity(object):
 
         assert_equals(Monotonicity.INCREASING.dcp_curvature(Curvature.CONCAVE, Curvature.CONVEX), Curvature.NONCONVEX)
         assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONCAVE, Curvature.AFFINE), Curvature.CONCAVE)
+
+        assert_equals(Monotonicity.NONMONOTONIC.dcp_curvature(Curvature.CONSTANT, Curvature.NONCONVEX), Curvature.CONSTANT)

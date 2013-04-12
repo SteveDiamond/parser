@@ -22,7 +22,8 @@ def make_atomic_func(atomic_class):
 
         errors = DCPViolationFactory.composition_error(instance.signed_curvature(), 
                                                 instance.monotonicity(),
-                                                instance.argument_curvatures())
+                                                instance.argument_curvatures(),
+                                                instance.argument_signs())
         return Expression(instance.curvature(), instance.sign(), name, instance.arguments(), 
                           errors = errors)
     return atomic_func

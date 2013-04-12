@@ -22,13 +22,22 @@ class Sign(object):
     def is_sign(sign_str):
         return sign_str in Sign.SIGN_MAP.keys()
 
-    # Sums list of signs
+    # Sums signs
     @staticmethod
-    def sum(signs):
+    def sum(*signs):
         sum_sign = Sign.ZERO
         for sign in signs:
             sum_sign = sum_sign + sign
         return sum_sign
+
+    # Smallest sign
+    @staticmethod
+    def min(*signs):
+        min_sign = Sign.POSITIVE
+        for sign in signs:
+            if sign < min_sign:
+                min_sign = sign
+        return min_sign
         
     def __add__(self, other):
         sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]
@@ -69,6 +78,12 @@ class Sign(object):
 
     def __gt__(self, other): 
         return other < self
+
+    def __le__(self, other):
+        return self < other or self == other
+
+    def __ge__(self, other):
+        return other <= self
 
     def __repr__(self):
         return "Sign('%s')" % self.sign_str

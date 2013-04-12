@@ -41,3 +41,13 @@ class TestSign(object):
      assert Sign.POSITIVE > Sign.UNKNOWN
      assert Sign.NEGATIVE < Sign.ZERO
      assert Sign.ZERO < Sign.UNKNOWN
+     assert not Sign.ZERO > Sign.ZERO
+     assert not Sign.POSITIVE < Sign.ZERO
+
+    # Test <= and =>
+  def test_cmp_eq(self):
+     assert Sign.POSITIVE >= Sign.POSITIVE
+     assert Sign.NEGATIVE <= Sign.ZERO
+     assert Sign.ZERO <= Sign.UNKNOWN
+     assert not Sign.UNKNOWN <= Sign.ZERO
+     assert not Sign.POSITIVE <= Sign.ZERO

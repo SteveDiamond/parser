@@ -19,13 +19,13 @@ class DCPViolationFactory(object):
     # Returns a list with a CompositionError for each argument that 
     # violates DCP composition rules, i.e. produces a non-convex composition.
     @staticmethod
-    def composition_error(func_curvature, func_monotonicities, arg_curvatures):
+    def composition_error(func_curvature, func_monotonicities, arg_curvatures, arg_signs):
         errors = []
         for i in range(len(func_monotonicities)):
             monotonicity = func_monotonicities[i]
             curvature = monotonicity.dcp_curvature(func_curvature, arg_curvatures[i])
             if curvature == Curvature.NONCONVEX:
-                err = CompositionError(func_curvature, monotonicity, arg_curvatures[i], i)
+                err = CompositionError(func_curvature, monotonicity, arg_curvatures[i], arg_signs[i], i)
                 errors.append(err)
 
         if len(errors) == 0:
