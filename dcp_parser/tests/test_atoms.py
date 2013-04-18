@@ -9,19 +9,11 @@ class TestAtoms(object):
     """ Unit tests for the atomic/monotonicity class. """
     @classmethod
     def setup_class(self):
-        self.unknown = Sign.UNKNOWN
-
-        self.constant = Curvature.CONSTANT
-        self.affine = Curvature.AFFINE
-        self.convex = Curvature.CONVEX
-        self.concave = Curvature.CONCAVE
-        self.nonconvex = Curvature.NONCONVEX
-
-        self.const_exp = Expression(self.constant, self.unknown, 'const_exp')
-        self.aff_exp = Expression(self.affine, self.unknown, 'aff_exp')
-        self.cvx_exp = Expression(self.convex, self.unknown, 'convex_exp')
-        self.conc_exp = Expression(self.concave, self.unknown, 'conc_exp')
-        self.noncvx_exp = Expression(self.nonconvex, self.unknown, 'noncvx_exp')
+        self.const_exp = Expression(Curvature.CONSTANT, Sign.UNKNOWN, 'const_exp')
+        self.aff_exp = Expression(Curvature.AFFINE, Sign.UNKNOWN, 'aff_exp')
+        self.cvx_exp = Expression(Curvature.CONVEX, Sign.UNKNOWN, 'convex_exp')
+        self.conc_exp = Expression(Curvature.CONCAVE, Sign.UNKNOWN, 'conc_exp')
+        self.noncvx_exp = Expression(Curvature.NONCONVEX, Sign.UNKNOWN, 'noncvx_exp')
 
         self.cvx_pos = Expression(Curvature.CONVEX, Sign.POSITIVE, 'cvx_pos')
         self.cvx_neg = Expression(Curvature.CONVEX, Sign.NEGATIVE, 'cvx_neg')
@@ -36,37 +28,43 @@ class TestAtoms(object):
     def test_dcp_curvature(self):
         monotonicities = [self.increasing, self.decreasing]
         args = [self.cvx_exp, self.conc_exp]
-        assert_equals(Atom.dcp_curvature(self.convex, args, monotonicities), self.convex)
+        assert_equals(Atom.dcp_curvature(Curvature.CONVEX, args, monotonicities), Curvature.CONVEX)
 
         args = [self.conc_exp, self.aff_exp]
-        assert_equals(Atom.dcp_curvature(self.concave, args, monotonicities), self.concave)
-        assert_equals(Atom.dcp_curvature(self.affine, args, monotonicities), self.concave)
-        assert_equals(Atom.dcp_curvature(self.nonconvex, args, monotonicities), self.nonconvex)
+        assert_equals(Atom.dcp_curvature(Curvature.CONCAVE, args, monotonicities), Curvature.CONCAVE)
+        assert_equals(Atom.dcp_curvature(Curvature.AFFINE, args, monotonicities), Curvature.CONCAVE)
+        assert_equals(Atom.dcp_curvature(Curvature.NONCONVEX, args, monotonicities), Curvature.NONCONVEX)
 
         args = [self.const_exp, self.const_exp]
-        assert_equals(Atom.dcp_curvature(self.nonconvex, args, monotonicities), self.constant)
+        assert_equals(Atom.dcp_curvature(Curvature.NONCONVEX, args, monotonicities), Curvature.CONSTANT)
 
         monotonicities = [self.nonmonotonic, self.increasing, self.decreasing]
         args = [self.const_exp, self.cvx_exp, self.aff_exp]
-        assert_equals(Atom.dcp_curvature(self.convex, args, monotonicities), self.convex)
-        assert_equals(Atom.dcp_curvature(self.concave, args, monotonicities), self.nonconvex)
+        assert_equals(Atom.dcp_curvature(Curvature.CONVEX, args, monotonicities), Curvature.CONVEX)
+        assert_equals(Atom.dcp_curvature(Curvature.CONCAVE, args, monotonicities), Curvature.NONCONVEX)
 
         args = [self.aff_exp, self.aff_exp, self.cvx_exp]
-        assert_equals(Atom.dcp_curvature(self.concave, args, monotonicities), self.concave)
+        assert_equals(Atom.dcp_curvature(Curvature.CONCAVE, args, monotonicities), Curvature.CONCAVE)
 
         args = [self.cvx_exp, self.aff_exp, self.aff_exp]
-        assert_equals(Atom.dcp_curvature(self.concave, args, monotonicities), self.nonconvex)
+        assert_equals(Atom.dcp_curvature(Curvature.CONCAVE, args, monotonicities), Curvature.NONCONVEX)
 
     # Test specific atoms.
     def test_square(self):
-        assert_equals(Square(self.cvx_exp).curvature(), self.nonconvex)
-        exp = Expression(self.concave, Sign.NEGATIVE, 'exp')
-        assert_equals(Square(exp).curvature(), self.convex)
+        assert_equals(Square(self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Square(self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Square(self.cvx_pos).curvature(), Curvature.CONVEX)
 
     def test_log_sum_exp(self):
-        assert_equals(Log_sum_exp(self.cvx_exp, self.cvx_exp).curvature(), self.convex)
-        assert_equals(Log_sum_exp(self.cvx_exp, self.aff_exp).curvature(), self.convex)
-        assert_equals(Log_sum_exp(self.conc_exp, self.cvx_exp).curvature(), self.nonconvex)
+        assert_equals(Log_sum_exp(self.cvx_exp, self.cvx_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Log_sum_exp(self.cvx_exp, self.aff_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Log_sum_exp(self.conc_exp, self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        # Check error message
+        try:
+            Log_sum_exp()
+            assert False
+        except Exception, e:
+            assert_equals(str(e), 'No arguments given to log_sum_exp.')
 
     def test_max(self):
         assert_equals(Max(self.cvx_pos, self.cvx_neg).sign(), Sign.POSITIVE)
@@ -86,12 +84,6 @@ class TestAtoms(object):
             assert False
         except Exception, e:
             assert_equals(str(e), 'log only accepts positive arguments.')
-
-    def test_quad_over_lin(self):
-        assert_equals(Quad_over_lin(self.cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
-        assert_equals(Quad_over_lin(self.conc_neg, self.conc_exp).curvature(), Curvature.CONVEX)
-        assert_equals(Quad_over_lin(self.cvx_exp, self.conc_exp).curvature(), Curvature.NONCONVEX)
-        assert_raises(Exception, Quad_over_lin, Constant(2), Constant(-2))
 
     def test_min(self):
         assert_equals(Min(self.conc_pos, self.conc_neg).sign(), Sign.NEGATIVE)
@@ -251,13 +243,13 @@ class TestAtoms(object):
 
     def test_norm_largest(self):
         assert_equals(Norm_largest(self.cvx_pos, self.aff_exp, self.conc_neg, 2).curvature(), Curvature.CONVEX)
-        assert_equals(Norm_largest(self.cvx_pos, self.aff_exp, self.const_exp, 2).sign(), Sign.UNKNOWN)
+        assert_equals(Norm_largest(self.cvx_pos, self.aff_exp, self.const_exp, 2).sign(), Sign.POSITIVE)
 
         assert_equals(Norm_largest(self.conc_pos, 1).curvature(), Curvature.NONCONVEX)
 
         # Check error message
         try:
-            Norm_largest(Constant(-2))
+            Norm_largest(Constant(-2), 'invalid')
             assert False
         except Exception, e:
             assert_equals(str(e), "Invalid value for k in norm_largest(*vector,k).")
@@ -306,3 +298,104 @@ class TestAtoms(object):
         except Exception, e:
             assert_equals(str(e), 'Must have p >= 1 for pow_abs(x,p), but have p = 0.')
         
+    def test_pow_pos(self):
+        assert_equals(Pow_pos(self.cvx_pos,2).curvature(), Curvature.CONVEX)
+        assert_equals(Pow_pos(self.conc_neg,2).curvature(), Curvature.CONSTANT)
+        assert_equals(Pow_pos(self.conc_pos,2).curvature(), Curvature.NONCONVEX)
+        assert_equals(Pow_pos(self.noncvx_exp, 2).sign(), Sign.POSITIVE)
+
+        # Check error message
+        try:
+            Pow_pos(Constant(-2), 0)
+            assert False
+        except Exception, e:
+            assert_equals(str(e), 'Must have p >= 1 for pow_pos(x,p), but have p = 0.')
+
+    def test_square_abs(self):
+        assert_equals(Square_abs(self.cvx_pos).curvature(), Curvature.CONVEX)
+        assert_equals(Square_abs(self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Square_abs(self.conc_pos).curvature(), Curvature.NONCONVEX)
+        assert_equals(Square_abs(self.noncvx_exp).sign(), Sign.POSITIVE)
+
+    def test_square_pos(self):
+        assert_equals(Square_pos(self.cvx_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Square_pos(self.conc_neg).curvature(), Curvature.CONSTANT)
+        assert_equals(Square_pos(self.conc_pos).curvature(), Curvature.NONCONVEX)
+        assert_equals(Square_pos(self.noncvx_exp).sign(), Sign.POSITIVE)
+        
+    def test_rel_entr(self):
+        assert_equals(Rel_entr(self.aff_exp, self.const_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Rel_entr(self.conc_exp, self.aff_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Rel_entr(self.cvx_exp, self.noncvx_exp).sign(), Sign.UNKNOWN)
+
+    def test_quad_over_lin(self):
+        assert_equals(Quad_over_lin(self.cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.cvx_pos, self.aff_exp, self.conc_neg, self.conc_exp).curvature(), 
+            Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.conc_neg, self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Quad_over_lin(self.cvx_exp, self.cvx_pos, self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).sign(), Sign.POSITIVE)
+
+        # Check error message
+        try:
+            Quad_over_lin(self.cvx_pos)
+            assert False
+        except Exception, e:
+            assert_equals(str(e), 'quad_over_lin called with too few arguments.')
+
+        # Check error message
+        try:
+            Quad_over_lin(self.cvx_pos, self.cvx_neg)
+            assert False
+        except Exception, e:
+            assert_equals(str(e), 'quad_over_lin only accepts positive divisor arguments.')
+
+    def test_sum_square(self):
+        assert_equals(Sum_square(self.cvx_pos, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square(self.cvx_neg, self.aff_exp, self.conc_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square(self.conc_neg, self.cvx_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square(self.cvx_neg, self.conc_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square(self.noncvx_exp, self.cvx_pos).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square(self.noncvx_exp, self.cvx_pos).sign(), Sign.POSITIVE)
+
+    def test_sum_square_abs(self):
+        assert_equals(Sum_square_abs(self.cvx_pos, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square_abs(self.cvx_neg, self.aff_exp, self.conc_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square_abs(self.conc_neg, self.cvx_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square_abs(self.noncvx_exp, self.cvx_pos).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square_abs(self.noncvx_exp, self.cvx_pos).sign(), Sign.POSITIVE)
+
+    def test_sum_square_pos(self):
+        assert_equals(Sum_square_pos(self.cvx_pos, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square_pos(self.cvx_neg, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).curvature(), Curvature.CONSTANT)
+        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).sign(), Sign.ZERO)
+        assert_equals(Sum_square_pos(self.noncvx_exp, self.cvx_pos).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square_pos(self.noncvx_exp, self.cvx_pos).sign(), Sign.POSITIVE)
+
+    def test_sum_largest(self):
+        assert_equals(Sum_largest(self.cvx_pos, self.aff_exp, 2).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_largest(self.cvx_pos, self.aff_exp, 2).sign(), Sign.UNKNOWN)
+
+        assert_equals(Sum_largest(self.conc_exp, 1).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_smallest(self.cvx_exp, self.noncvx_exp, 1).curvature(), Curvature.NONCONVEX)
+        # Check error message
+        try:
+            Sum_largest(self.cvx_pos, 'invalid')
+            assert False
+        except Exception, e:
+            assert_equals(str(e), "Invalid value for k in sum_largest(*vector,k).")
+
+    def test_sum_smallest(self):
+        assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).curvature(), Curvature.CONCAVE)
+        assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).sign(), Sign.UNKNOWN)
+
+        assert_equals(Sum_smallest(self.conc_exp, 1).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_smallest(self.conc_exp, self.noncvx_exp, 1).curvature(), Curvature.NONCONVEX)
+        # Check error message
+        try:
+            Sum_smallest(self.cvx_pos, 'invalid')
+            assert False
+        except Exception, e:
+            assert_equals(str(e), "Invalid value for k in sum_smallest(*vector,k).")

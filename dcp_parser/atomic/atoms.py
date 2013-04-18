@@ -19,10 +19,17 @@ class Atom(object):
                             str(Sign.UNKNOWN): Monotonicity.NONMONOTONIC
                             }
 
-    # args is the subclass instance followed by expressions.
+    # args is the expressions passed into the Atom constructor.
     def __init__(self, *args):
+        # Throws error if args is empty.
+        if len(args) == 0:
+            raise Exception('No arguments given to %s.' % self.name())
         # Convert numeric constants to Constants
         self.args = map(Expression.type_check, list(args))
+
+    # Returns the Atom's name as a function.
+    def name(self):
+        return self.__class__.__name__.lower()
 
     # Returns expression arguments.
     def arguments(self):
@@ -90,34 +97,6 @@ class Atom(object):
 
 
 """---------------------------------- Atoms ----------------------------------"""
-class Quad_over_lin(Atom):
-    """ x^2/y """
-    def __init__(self, x, y):
-        super(Quad_over_lin,self).__init__(x, y)
-        # Throws error if argument is negative or zero.
-        sign = self.args[1].sign
-        if sign == Sign.NEGATIVE or sign == Sign.ZERO:
-            raise Exception('Quad_over_lin only accepts positive second arguments.')
-
-    # Always positive
-    def sign(self):
-        return Sign.POSITIVE
-
-    # Always convex
-    def signed_curvature(self):
-        return Curvature.CONVEX
-
-    # Increasing (decreasing) for positive (negative) argument.
-    def monotonicity(self):
-        arg_sign_str = str(self.args[0].sign)
-        monotonicity = Quad_over_lin.ABS_SIGN_TO_MONOTONICITY[arg_sign_str]
-        return [monotonicity, Monotonicity.DECREASING]
-
-class Square(Quad_over_lin):
-    """ Squares a single argument. """
-    def __init__(self, x):
-        super(Square,self).__init__(x,1)
-
 class Log_sum_exp(Atom):
     """ log(e^(arg[0]) + e^(arg[1]) + ... + e^(arg[n])) """
     # Always unknown
@@ -313,7 +292,7 @@ class Norm(Atom):
 class Abs(Norm):
     """ Absolute value of one scalar argument. """
     def __init__(self, x):
-        super(Abs,self).__init__(1,x)
+        super(Abs,self).__init__(x,1)
 
 class Entr(Atom):
     """ The entropy function -x*log(x) """
@@ -344,7 +323,7 @@ class Huber(Atom):
         # Throws error if p is invalid.
         if not (isinstance(M, Number) and M > 0):
             raise Exception('Invalid M for %s function, M = %s' \
-                % (self.__class__.__name__.lower(), M))
+                % (self.name(), M))
         super(Huber,self).__init__(x)
 
     # Always positive
@@ -402,7 +381,7 @@ class Huber_circ(Huber_pos):
         if len(args) > 0 and isinstance(args[len(args)-1],Number):
             M = args[len(args)-1]
             args = args[:-1]
-        norm = Huber_circ.atom_to_expression(Norm(2,*args))
+        norm = Atom.atom_to_expression(Norm(2,*args))
         super(Huber_circ, self).__init__(norm,M)
 
 class Inv_pos(Atom):
@@ -453,8 +432,8 @@ class Kl_div(Atom):
 
 class Norm_largest(Atom):
     """ 
-    Sum of the k largest elements.
-    norm_largest(vector, k) 
+    Sum of the k largest magnitudes (i.e. absolute values) in the given arguments.
+    norm_largest(vector, k)
     """
     def __init__(self, *args):
         args = list(args)
@@ -467,10 +446,9 @@ class Norm_largest(Atom):
         else:
             raise Exception("Invalid value for k in norm_largest(*vector,k).")
 
-    # Always unknown
-    # Could determine from signs of elements, but would be obscure.
+    # Always positive
     def sign(self):
-        return Sign.UNKNOWN
+        return Sign.POSITIVE
 
     # Always convex
     def signed_curvature(self):
@@ -555,6 +533,149 @@ class Pow_abs(Pow_p):
         # Must have p >= 1
         if not (isinstance(p, Number) and p >= 1):
             raise Exception('Must have p >= 1 for pow_abs(x,p), but have p = %s.' % p)
-        Pow_abs.atom_to_expression(Abs(x))
-        super(Pow_abs, self).__init__(x,p)
+        abs_exp = Atom.atom_to_expression(Abs(x))
+        super(Pow_abs, self).__init__(abs_exp,p)
 
+class Pow_pos(Pow_p):
+    """ max{x,0}^p """
+    def __init__(self,x,p):
+        # Must have p >= 1
+        if not (isinstance(p, Number) and p >= 1):
+            raise Exception('Must have p >= 1 for pow_pos(x,p), but have p = %s.' % p)
+        pos_exp = Atom.atom_to_expression(Pos(x))
+        super(Pow_pos, self).__init__(pos_exp,p)
+
+class Square_abs(Pow_abs):
+    """ |x|^2 """
+    def __init__(self,x):
+        super(Square_abs, self).__init__(x,2)
+
+class Square_pos(Pow_pos):
+    """ max{x,0}^2 """
+    def __init__(self,x):
+        super(Square_pos, self).__init__(x,2)
+
+class Rel_entr(Atom):
+    """ rel_entr(x,y) = x*log(x/y) """
+    def __init__(self,x,y):
+        super(Rel_entr,self).__init__(x,y)
+
+    # Always unknown
+    def sign(self):
+        return Sign.UNKNOWN
+
+    # Always convex
+    def signed_curvature(self):
+        return Curvature.CONVEX
+
+    # Always non-monotonic
+    def monotonicity(self):
+        return [Monotonicity.NONMONOTONIC] * len(self.args)
+
+class Quad_over_lin(Atom):
+    """ 
+    (x'*x)/y = sum_square(vector)/y 
+    Last argument is the divisor. All preceding arguments are treated as part of the vector x.
+    """
+    def __init__(self, *args):
+        # Requires at least 2 arguments. 
+        # Error message can't be more specific because of subclasses.
+        if len(args) < 2:
+            raise Exception('%s called with too few arguments.' % self.name())
+        super(Quad_over_lin,self).__init__(*args)
+        self.y = self.args[len(self.args)-1]
+        self.vector = self.args[:-1]
+        # Throws error if y is negative or zero.
+        if self.y.sign == Sign.NEGATIVE or self.y.sign == Sign.ZERO:
+            raise Exception('%s only accepts positive divisor arguments.' % self.name())
+
+    # Positive unless all vector args are zero.
+    def sign(self):
+        vec_signs = self.argument_signs()[:-1]
+        if Sign.sum(*vec_signs) == Sign.ZERO:
+            return Sign.ZERO
+        else:
+            return Sign.POSITIVE
+
+    # Always convex
+    def signed_curvature(self):
+        return Curvature.CONVEX
+
+    # Increasing (decreasing) for positive (negative) argument in vector args.
+    # Decreasing for divisor arguments
+    def monotonicity(self):
+        monotonicities = []
+        # Vector args
+        for scalar in self.vector:
+            sign_str = str(scalar.sign)
+            monotonicity = Norm.ABS_SIGN_TO_MONOTONICITY[sign_str]
+            monotonicities.append(monotonicity)
+        # Divisor arg
+        monotonicities.append(Monotonicity.DECREASING)
+        return monotonicities
+
+class Square(Quad_over_lin):
+    """ Squares a single argument. """
+    def __init__(self, x):
+        super(Square,self).__init__(x,1)
+
+class Sum_square(Quad_over_lin):
+    """ x1^2 + ... + xn^2 = quad_over_lin(x1,...,xn,1) """
+    def __init__(self, *x):
+        args = list(x)
+        args.append(1) # Add divisor arg.
+        super(Sum_square,self).__init__(*args)
+
+class Sum_square_abs(Sum_square):
+    """ |x1|^2 + ... + |xn|^2 = sum_square(abs(x1),...,abs(xn)) """
+    def __init__(self, *x):
+        exp_vec = []
+        for scalar in x:
+            abs_exp = Atom.atom_to_expression(Abs(scalar))
+            exp_vec.append(abs_exp)
+        super(Sum_square_abs,self).__init__(*exp_vec)
+
+class Sum_square_pos(Sum_square):
+    """ max{x1,0}^2 + ... + max{xn,0}^2 = sum_square(pos(x1),...,pos(xn)) """
+    def __init__(self, *x):
+        exp_vec = []
+        for scalar in x:
+            pos_exp = Atom.atom_to_expression(Pos(scalar))
+            exp_vec.append(pos_exp)
+        super(Sum_square_pos,self).__init__(*exp_vec)
+
+class Sum_largest(Atom):
+    """ Sum of the largest k values given. """
+    def __init__(self, *args):
+        args = list(args)
+        # Use last argument as k
+        last_index = len(args)-1
+        if len(args) > 0 and isinstance(args[last_index],Number):
+            k = args[last_index]
+            args = args[:-1]
+            super(Sum_largest, self).__init__(*args)
+        else:
+            raise Exception("Invalid value for k in %s(*vector,k)." % self.name())
+
+    # Always unknown
+    # Could determine from signs of elements, but would be obscure.
+    def sign(self):
+        return Sign.UNKNOWN
+
+    # Always convex
+    def signed_curvature(self):
+        return Curvature.CONVEX
+
+    # Always increasing.
+    def monotonicity(self):
+        return [Monotonicity.INCREASING] * len(self.args)
+
+class Sum_smallest(Sum_largest):
+    """ Sum of the smallest k values given. """
+    # Always concave
+    def signed_curvature(self):
+        return Curvature.CONCAVE
+
+    # Always decreasing
+    def monotonicity(self):
+        return [Monotonicity.DECREASING] * len(self.args)

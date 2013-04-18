@@ -13,7 +13,7 @@ def make_atomic_func(atomic_class):
             raise Exception('%s requires at least one argument.' % func_name)
 
         instance = atomic_class(*args)
-        func_name = atomic_class.__name__.lower()
+        func_name = instance.name()
         
         name = func_name + "(" + str(args[0])
         for i in range(1,len(args)):
