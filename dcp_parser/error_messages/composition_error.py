@@ -19,7 +19,6 @@ class CompositionError(DCPViolation):
                               CompositionError.type_to_name(self.func_curvature),
                               CompositionError.type_to_name(self.monotonicity),
                               "with",
-                              CompositionError.type_to_name(self.arg_curvature) + ",",
-                              CompositionError.type_to_name(self.arg_sign),
+                              CompositionError.type_to_name(self.arg_curvature),
                               "argument"])
         return settings.DCP_ERROR_MSG + error_str

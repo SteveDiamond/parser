@@ -3,6 +3,7 @@ from dcp_parser.expression.sign import Sign
 from dcp_parser.atomic.monotonicity import Monotonicity
 from operation_error import OperationError
 from composition_error import CompositionError
+from constraint_error import ConstraintError
 
 class DCPViolationFactory(object):
     """ Factory class for OperationError and CompositionError. """
@@ -32,3 +33,8 @@ class DCPViolationFactory(object):
             return []
         else:
             return errors
+
+    # Returns a ConstraintError using the given curvatures and constraint string.
+    @staticmethod
+    def constraint_error(constraint_str, lh_curvature, rh_curvature):
+        return [ConstraintError(constraint_str, lh_curvature, rh_curvature)]

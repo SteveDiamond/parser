@@ -47,6 +47,21 @@ class Curvature(object):
             if val == curvature_val:
                 return Curvature(key)
 
+    # Returns whether the curvature is affine, 
+    # counting constant expressions as affine.
+    def is_affine(self):
+        return self == Curvature.CONSTANT or self == Curvature.AFFINE
+
+    # Returns whether the curvature is convex, 
+    # counting affine and constant expressions as convex.
+    def is_convex(self):
+        return self.is_affine() or self == Curvature.CONVEX
+
+    # Returns whether the curvature is concave, 
+    # counting affine and constant expressions as concave.
+    def is_concave(self):
+        return self.is_affine() or self == Curvature.CONCAVE
+
     # Sums list of curvatures
     @staticmethod
     def sum(curvatures):

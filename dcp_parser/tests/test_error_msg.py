@@ -53,7 +53,7 @@ class TestErrorMsg(object):
           assert_equals(len(exp.errors),0)
 
           exp = square(self.cvx_exp)
-          error_str = "Illegal composition: convex non-monotonic with convex, unknown sign argument"
+          error_str = "Illegal composition: convex non-monotonic with convex argument"
           assert_equals(len(exp.errors),1)
           assert_equals(str(exp.errors[0]),self.dcp_violation + error_str)
           assert(exp.errors[0].is_indexed())
@@ -63,10 +63,10 @@ class TestErrorMsg(object):
 
           exp = log_sum_exp(self.conc_pos, self.noncvx_neg, self.cvx_exp)
           assert_equals(len(exp.errors),2)
-          error_str = "Illegal composition: convex non-decreasing with concave, positive argument"
+          error_str = "Illegal composition: convex non-decreasing with concave argument"
           assert_equals(str(exp.errors[0]),self.dcp_violation + error_str)
           assert_equals(exp.errors[0].index,0)
 
-          error_str = "Illegal composition: convex non-decreasing with non-convex, negative argument"
+          error_str = "Illegal composition: convex non-decreasing with non-convex argument"
           assert_equals(str(exp.errors[1]),self.dcp_violation + error_str)
           assert_equals(exp.errors[1].index,1)

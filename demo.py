@@ -35,7 +35,7 @@ def select_expression(expressions):
     return expressions[index]
 
 def explore_parse_trees(parser):
-    exp = select_expression(parser.expressions)
+    exp = select_expression(parser.statements)
     while True:
         display_root(exp)
         exp = select_child(exp)
@@ -43,7 +43,10 @@ def explore_parse_trees(parser):
 def display_root(exp):
     print
     print "Current expression: %s" % exp
-    print "Curvature: %s, Sign: %s" % (exp.curvature, exp.sign)
+    try:
+        print "Curvature: %s, Sign: %s" % (exp.curvature, exp.sign)
+    except Exception, e: # exp is a Constraint
+        pass 
     for error in exp.errors:
         if error.is_indexed():
             print "Argument %i:" % error.index

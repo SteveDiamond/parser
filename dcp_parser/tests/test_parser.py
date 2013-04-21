@@ -41,7 +41,7 @@ class TestParser(object):
           expression = 'c * (a * x + d * (y / b - z) + x)'
           self.parser.parse(expression)
 
-          result = self.parser.expressions[0]
+          result = self.parser.statements[0]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONSTANT)
           assert_equals(result.sign, Sign.ZERO)
@@ -57,7 +57,7 @@ class TestParser(object):
           expression = '-2 * b + 0 * (z * x - 5) + -a / 1.5'
           self.parser.parse(expression)
 
-          result = self.parser.expressions[0]
+          result = self.parser.statements[0]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONSTANT)
           assert_equals(result.sign, Sign.POSITIVE)
@@ -69,21 +69,21 @@ class TestParser(object):
           expression = 'c * square(square(u)) - log(v) - (-c * log_sum_exp(d, u, v) - max(u, c))'
           self.parser.parse(expression)
 
-          result = self.parser.expressions[0]
+          result = self.parser.statements[0]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONVEX)
           assert_equals(result.sign, Sign.UNKNOWN)
 
           expression = '-square(square(u)) - max(square(v), c)'
           self.parser.parse(expression)
-          result = self.parser.expressions[1]
+          result = self.parser.statements[1]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONCAVE)
           assert_equals(result.sign, Sign.NEGATIVE)
 
           expression = 'c * square(log(u)) + max(c, log_sum_exp(max(u, v), c))'
           self.parser.parse(expression)
-          result = self.parser.expressions[2]
+          result = self.parser.statements[2]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.NONCONVEX)
           assert_equals(result.sign, Sign.POSITIVE)
@@ -91,6 +91,59 @@ class TestParser(object):
           # Numeric arguments
           expression = 'max(2, v)'
           self.parser.parse(expression)
-          result = self.parser.expressions[3]
+          result = self.parser.statements[3]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONVEX)
+
+      # Test parser with constraints
+      def test_constraints_eval(self):
+          self.parser.parse('variable x y')
+          self.parser.parse('parameter positive a b')
+          
+          expression = 'a * x == y + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 0)
+
+          expression = 'max(x, y) == y + square(b)'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 1)
+
+          expression = 'a * square(x) <= log(y) + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 0)
+
+          expression = 'a * log(x) <= square(y) + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 1)  
+
+          expression = 'a * log(x) >= square(y) + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 0)      
+
+          expression = 'a * square(x) >= log(y) + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 1) 

@@ -6,9 +6,11 @@ from sign import Sign
 from curvature import Curvature
 from sys import maxint
 from numbers import Number
+from statement import Statement
+from constraints import EqConstraint, GeqConstraint, LeqConstraint
 from dcp_parser.error_messages.dcp_violation_factory import DCPViolationFactory
 
-class Expression(object):
+class Expression(Statement):
     """
     A convex optimization expression.
     Records sign, curvature, string representation, and component expressions.
@@ -23,16 +25,8 @@ class Expression(object):
         self.curvature = curvature
         self.sign = sign
         self.name = name
-        self.subexpressions = subexpressions
-        self.init_subexpressions()
-        self.parent = parent
         self.priority = priority
-        self.errors = errors
-
-    # Initializes parent attribute of subexpressions
-    def init_subexpressions(self):
-        for exp in self.subexpressions:
-            exp.parent = self
+        super(Expression, self).__init__(subexpressions, errors, parent)
 
     # Determines whether the subexpressions of a expression constructed
     # by a binary relation should be parenthesized.
@@ -160,25 +154,15 @@ class Expression(object):
                           '-' + str(self), 
                           [self])
     
-    # TODO cleanup
-    # def __le__(self,other):
-    #     if iscvx(self) and isccv(other):
-    #         return LeqConstraint(self,other)
-    #     else:
-    #         raise Exception("Cannot have '%s <= %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
+    def __le__(self,other):
+        return LeqConstraint(self, other)
     
-    # def __ge__(self,other):
-    #     if isccv(self) and iscvx(other):
-    #         return GeqConstraint(self,other)
-    #     else:
-    #         raise Exception("Cannot have '%s >= %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
-    
-    # def __eq__(self,other):
-    #     if isaff(self) and isaff(other):
-    #         return EqConstraint(self,other)
-    #     else:
-    #         raise Exception("Cannot have '%s == %s'" % (self.curvature_names[self.curvature], other.curvature_names[self.curvature]))
-    
+    def __ge__(self,other):
+        return GeqConstraint(self,other)
+           
+    def __eq__(self,other):
+        return EqConstraint(self,other)
+           
     def __repr__(self):
         """Representation in Python"""
         return "Expression(%s, %s, %s, %s)" % (self.curvature, 

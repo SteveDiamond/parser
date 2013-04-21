@@ -43,3 +43,24 @@ class TestCurvature(object):
         assert_equals(Curvature.CONSTANT.sign_mult(Sign.NEGATIVE), Curvature.CONSTANT)
         assert_equals(Curvature.CONVEX.sign_mult(Sign.ZERO), Curvature.CONSTANT)
         assert_equals(Curvature.CONCAVE.sign_mult(Sign.UNKNOWN), Curvature.NONCONVEX)
+
+    # Tests the is_affine, is_convex, and is_concave methods
+    def test_is_curvature(self):
+        assert Curvature.CONSTANT.is_affine()
+        assert Curvature.AFFINE.is_affine()
+        assert not Curvature.CONVEX.is_affine()
+        assert not Curvature.CONCAVE.is_affine()
+        assert not Curvature.NONCONVEX.is_affine()
+
+        assert Curvature.CONSTANT.is_convex()
+        assert Curvature.AFFINE.is_convex()
+        assert Curvature.CONVEX.is_convex()
+        assert not Curvature.CONCAVE.is_convex()
+        assert not Curvature.NONCONVEX.is_convex()
+
+        assert Curvature.CONSTANT.is_concave()
+        assert Curvature.AFFINE.is_concave()
+        assert not Curvature.CONVEX.is_concave()
+        assert Curvature.CONCAVE.is_concave()
+        assert not Curvature.NONCONVEX.is_concave()
+        

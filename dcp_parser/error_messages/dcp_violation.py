@@ -29,6 +29,6 @@ class DCPViolation(object):
         return DCPViolation.TYPE_TO_NAME[str(type)]
 
     # Returns whether the error is indexed as an argument in a function.
-    # Distinguishes OperationErrors from CompositionErrors
+    # Distinguishes OperationErrors from CompositionErrors and ConstraintErrors
     def is_indexed(self):
         return hasattr(self, 'index')

@@ -1,11 +1,12 @@
-from expression.expression import Expression, Parameter, Variable
+from expression.statement import Statement
+from expression.expression import Parameter, Variable
 from expression.sign import Sign
 import atomic.atom_loader
 
 class Parser(object):
     """
     Parses convex optimization problems.
-    Permitted expressions:
+    Permitted statements:
       variable x y z ...
       parameter (SIGN) a b c ...
       Any constraint or objective.
@@ -22,11 +23,11 @@ class Parser(object):
     # Dump previous input.
     def clear(self):
         self.symbol_table = {}
-        self.expressions = []
+        self.statements = []
 
-    # Evaluates expression and records the meaning.
-    def parse(self, expression):
-        toks = expression.split()
+    # Evaluates statement and records the meaning.
+    def parse(self, statement):
+        toks = statement.split()
         if len(toks) == 0: return
 
         actions = { 
@@ -35,12 +36,12 @@ class Parser(object):
             Parser.COMMENT_KEYWORD: lambda *args: None # Do nothing
         }
         
-        # If not one of the actions listed, default is to parse expression.
-        actions.get(toks[0], self.parse_expression)(toks, expression)   
+        # If not one of the actions listed, default is to parse statement.
+        actions.get(toks[0], self.parse_statement)(toks, statement)   
 
     # Reads variable names and adds them to the symbol table
     # with an affine Expression as the value.
-    def parse_variables(self, tokenized, expression):
+    def parse_variables(self, tokenized, statement):
         index = 1
         while index < len(tokenized):
             name = tokenized[index]
@@ -50,7 +51,7 @@ class Parser(object):
 
     # Reads parameter names and adds them to the symbol table
     # with a constant Expression as the value.
-    def parse_parameters(self, tokenized, expression):
+    def parse_parameters(self, tokenized, statement):
         if len(tokenized) <= 1: return
         # Check second token for sign
         potential_sign = tokenized[1].upper()
@@ -74,18 +75,17 @@ class Parser(object):
             raise Exception('The name %s is reserved for '
                             'an atomic function.' % name)
 
-    # Parses a convex optimization expression (i.e. objective, constraint, or assignment).
-    # Adds evaluated expression to expressions list.
-    def parse_expression(self, tokenized, expression):
-        # TODO constraints
-        exp = self.evaluate_expression(expression)
-        if isinstance(exp, Expression):
-            self.expressions.append(exp)
+    # Parses a convex optimization statement (i.e. objective or constraint).
+    # Adds evaluated statements to statements list.
+    def parse_statement(self, tokenized, statement):
+        exp = self.evaluate_statement(statement)
+        if isinstance(exp, Statement):
+            self.statements.append(exp)
 
-    # Evaluates an objective (TODO constraint) and returns an
-    # Expression that is the root of a full parse tree.
-    def evaluate_expression(self, expression):
+    # Evaluates an objective or constraint and returns an
+    # Statement that is the root of a full parse tree.
+    def evaluate_statement(self, statement):
         # Merge atoms, variables, and parameters.
         local_vars = dict(self.symbol_table.items() + self.atom_dict.items())
         # TODO replace this. Eval is insecure.
-        return eval(expression, {"__builtins__": None}, local_vars)
+        return eval(statement, {"__builtins__": None}, local_vars)

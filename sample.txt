@@ -8,4 +8,5 @@ log_sum_exp(a*x, max(b, -a*log(y))) + a*z/b
 # Invalid
 log(square(z)) - log_sum_exp(2*x*z, -square(y)) + (max(x,3) + log(y))
 # Test
-log_sum_exp(square(x),-log(y + a*x), 0*z*y)
+sum_smallest(rel_entr(norm(x,3),quad_over_lin(kl_div(x,y),max(log(x),1),y)), pow_p(huber(y,3), .5), 2)
+quad_over_lin(x,y,z) <= huber_circ(square(x),a,b,10) + inv_pos(z)
