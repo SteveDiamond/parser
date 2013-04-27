@@ -7,7 +7,7 @@ class DCPViolation(object):
     """ Abstract base class for DCP Violations. """
     __metaclass__ = abc.ABCMeta
 
-    # Maps curvature and monotonicity to the error message name.
+    # Maps curvature, monotonicity, and sign to the error message name.
     TYPE_TO_NAME = {
                 str(Curvature.CONSTANT): 'constant',
                 str(Curvature.AFFINE): 'affine',

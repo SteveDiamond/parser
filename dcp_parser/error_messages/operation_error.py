@@ -43,5 +43,5 @@ class OperationError(DCPViolation):
 
     def __str__(self):
         (lh_str, rh_str) = self.generate_error_str()
-        error_str = OperationError.BASE_MSG + lh_str + self.op_str + rh_str
+        error_str = "%s%s %s %s" % (OperationError.BASE_MSG, lh_str, self.op_str, rh_str)
         return settings.DCP_ERROR_MSG + error_str

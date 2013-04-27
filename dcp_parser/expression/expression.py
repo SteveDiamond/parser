@@ -18,15 +18,28 @@ class Expression(Statement):
 
     Priority is the order of operations priority of the binary operation that
     created the expression (if any). It is used to reconstruct parentheses.
+
+    Errors records the DCP violations introduced by forming the expression.
+    Monotonicity stores the monotonicity in each argument for atomic functions.
+    short_name is the name without the subexpressions, i.e. "x + y" is "+".
     """
     
     def __init__(self, curvature, sign, name, 
-                 subexpressions = [], priority = maxint, errors = [], parent = None):
+                 subexpressions = [],
+                 priority = maxint,
+                 errors = [],
+                 parent = None,
+                 monotonicity = None,
+                 short_name = None):
         self.curvature = curvature
         self.sign = sign
         self.name = name
         self.priority = priority
-        super(Expression, self).__init__(subexpressions, errors, parent)
+        self.monotonicity = monotonicity
+        # If no short_name given, default to the full name.
+        if short_name is None:
+            short_name = self.name
+        super(Expression, self).__init__(short_name, subexpressions, errors, parent)
 
     # Determines whether the subexpressions of a expression constructed
     # by a binary relation should be parenthesized.
@@ -38,13 +51,13 @@ class Expression(Statement):
         exp_str = str(exp)
         if exp.priority < self.priority:
             exp_str = "(" + exp_str + ")"
-        self.name = exp_str + self.name
+        self.name = "%s %s" % (exp_str, self.name)
 
         exp = self.subexpressions[1]
         exp_str = str(exp)
         if exp.priority <= self.priority:
             exp_str = "(" + exp_str + ")"
-        self.name = self.name + exp_str
+        self.name = "%s %s" % (self.name, exp_str)
 
     # Verifies that expression is a number or an expression. 
     # If it is a number, it is converted to a constant.
@@ -71,7 +84,8 @@ class Expression(Statement):
                           self.sign + other.sign,
                           settings.PLUS, 
                           [self,other],
-                          settings.PRIORITY_MAP[settings.PLUS])
+                          settings.PRIORITY_MAP[settings.PLUS],
+                          short_name = settings.PLUS)
         exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.PLUS, self, other, exp)
         return exp
@@ -87,7 +101,8 @@ class Expression(Statement):
                           self.sign - other.sign,
                           settings.MINUS, 
                           [self,other],
-                          settings.PRIORITY_MAP[settings.MINUS])
+                          settings.PRIORITY_MAP[settings.MINUS],
+                          short_name = settings.MINUS)
         exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.MINUS, self, other, exp)
         return exp
@@ -118,7 +133,8 @@ class Expression(Statement):
                          sign, 
                          settings.MULT, 
                          [self,other],
-                         settings.PRIORITY_MAP[settings.MULT])
+                         settings.PRIORITY_MAP[settings.MULT],
+                         short_name = settings.MULT)
         exp.sign_by_curvature()
         exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.MULT, self, other, exp)
@@ -137,7 +153,8 @@ class Expression(Statement):
                          sign, 
                          settings.DIV, 
                          [self,other],
-                         settings.PRIORITY_MAP[settings.DIV])
+                         settings.PRIORITY_MAP[settings.DIV],
+                         short_name = settings.DIV)
         exp.sign_by_curvature()
         exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.DIV, self, other, exp)
@@ -152,7 +169,8 @@ class Expression(Statement):
         return Expression(-self.curvature,
                           -self.sign,
                           '-' + str(self), 
-                          [self])
+                          [self],
+                          short_name = settings.MINUS)
     
     def __le__(self,other):
         return LeqConstraint(self, other)
@@ -165,10 +183,15 @@ class Expression(Statement):
            
     def __repr__(self):
         """Representation in Python"""
-        return "Expression(%s, %s, %s, %s)" % (self.curvature, 
-                                               self.sign, 
-                                               self.name, 
-                                               self.subexpressions)
+        return "Expression(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (self.curvature,
+                                                                   self.sign, 
+                                                                   self.name, 
+                                                                   self.subexpressions,
+                                                                   self.priority,
+                                                                   self.errors,
+                                                                   self.parent,
+                                                                   self.monotonicity,
+                                                                   self.short_name)
     
     def __str__(self):
         """String representation"""

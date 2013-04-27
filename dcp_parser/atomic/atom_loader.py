@@ -25,7 +25,9 @@ def make_atomic_func(atomic_class):
                                                 instance.argument_curvatures(),
                                                 instance.argument_signs())
         return Expression(instance.curvature(), instance.sign(), name, instance.arguments(), 
-                          errors = errors)
+                          errors = errors, 
+                          monotonicity = instance.monotonicity(), 
+                          short_name = instance.short_name())
     return atomic_func
 
 # Creates a dict mapping atomic function names to generated atomic functions.

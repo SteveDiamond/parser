@@ -10,7 +10,7 @@ class Constraint(Statement):
         self.lhs = lhs
         self.rhs = rhs
         errors = self.check_curvatures() 
-        super(Constraint, self).__init__([lhs,rhs], errors)
+        super(Constraint, self).__init__(self.CONSTRAINT_STR, [lhs,rhs], errors)
 
     # Returns errors if lhs and rhs curvatures are invalid.
     @abc.abstractmethod

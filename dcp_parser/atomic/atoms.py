@@ -38,6 +38,12 @@ class Atom(object):
     def name(self):
         return self.__class__.__name__.lower()
 
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    # For most Atoms this will be the same as the function name.
+    def short_name(self):
+        return self.name()
+
     # Returns expression arguments passed into the Atom.
     def arguments(self):
         return self.original_args
@@ -274,13 +280,13 @@ class Norm(Atom):
     def __init__(self, *args):
         # Set p to last arg if last arg is not an Expression
         # Otherwise default to p = 2
-        p = 2
+        self.p = 2
         if len(args) > 0 and not isinstance(args[len(args)-1],Expression):
-            p = args[len(args)-1]
+            self.p = args[len(args)-1]
             args = args[:-1]
         # Throws error if p is invalid.
-        if not ( (isinstance(p, Number) and p >= 1) or p == 'Inf'):
-            raise Exception('Invalid p-norm, p = %s' % p)
+        if not ( (isinstance(self.p, Number) and self.p >= 1) or self.p == 'Inf'):
+            raise Exception('Invalid p-norm, p = %s' % self.p)
         super(Norm,self).__init__(*args)
 
     # Always positive
@@ -299,6 +305,11 @@ class Norm(Atom):
             monotonicity = Norm.ABS_SIGN_TO_MONOTONICITY[sign_str]
             monotonicities.append(monotonicity)
         return monotonicities
+
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return "%s(...,%s)" % (self.name(), self.p)
 
 class Abs(Norm):
     """ Absolute value of one scalar argument. """
@@ -331,10 +342,11 @@ class Huber(Atom):
     M defaults to 1. M must be positive.
     """
     def __init__(self, x, M=1):
+        self.M = M
         # Throws error if p is invalid.
-        if not (isinstance(M, Number) and M > 0):
+        if not (isinstance(self.M, Number) and self.M > 0):
             raise Exception('Invalid M for %s function, M = %s' \
-                % (self.name(), M))
+                % (self.name(), self.M))
         super(Huber,self).__init__(x)
 
     # Always positive
@@ -350,6 +362,11 @@ class Huber(Atom):
         arg_sign_str = str(self.args[0].sign)
         monotonicity = Berhu.ABS_SIGN_TO_MONOTONICITY[arg_sign_str]
         return [monotonicity]
+
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return "%s(...,%s)" % (self.name(), self.M)
 
 class Berhu(Huber):
     """ 
@@ -539,6 +556,11 @@ class Pow_p(Atom):
         else: # p > 1
             return [Pow_p.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
 
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return "%s(...,%s)" % (self.name(), self.p)
+
 class Pow_abs(Pow_p):
     """ |x|^p """
     def __init__(self,x,p):
@@ -669,7 +691,7 @@ class Sum_largest(Atom):
         # Use last argument as k
         last_index = len(args)-1
         if len(args) > 0 and isinstance(args[last_index],Number):
-            k = args[last_index]
+            self.k = args[last_index]
             args = args[:-1]
             super(Sum_largest, self).__init__(*args)
         else:
@@ -687,6 +709,11 @@ class Sum_largest(Atom):
     # Always increasing.
     def monotonicity(self):
         return [Monotonicity.INCREASING] * len(self.args)
+
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return "%s(...,%s)" % (self.name(), self.k)
 
 class Sum_smallest(Sum_largest):
     """ Sum of the smallest k values given. """

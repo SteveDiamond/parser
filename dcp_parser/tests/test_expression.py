@@ -98,3 +98,18 @@ class TestExpression(object):
         assert_equals(str(x1.parent), 'x / x')
         assert_equals(str(x2.parent), 'x / x')
         assert_equals(str(x3.parent), 'x / x * x')
+
+    # Tests that short name is correct.
+    def test_short_name(self):
+        x = Variable('x')
+        a = Parameter('a', Sign.POSITIVE)
+        assert_equals(x.short_name, 'x')
+        assert_equals(a.short_name, 'a')
+
+        assert_equals((x+a).short_name, '+')
+        assert_equals((x-a).short_name, '-')
+        assert_equals((x*a).short_name, '*')
+        assert_equals((x/a).short_name, '/')
+        assert_equals((-a).short_name, '-')
+
+

@@ -93,3 +93,14 @@ class TestConstraints(object):
         assert_equals(len(geq_invalid.errors), 1)
         base_msg = "Illegal constraint: convex >= non-convex"
         assert_equals(str(geq_invalid.errors[0]), self.dcp_violation + base_msg)
+
+    # Test short_name
+    def test_short_name(self):
+        leq = LeqConstraint(self.const_exp, self.aff_exp)
+        assert_equals(leq.short_name, "<=")
+
+        geq = GeqConstraint(self.const_exp, self.aff_exp)
+        assert_equals(geq.short_name, ">=")
+
+        eq = EqConstraint(self.const_exp, self.aff_exp)
+        assert_equals(eq.short_name, "==")
