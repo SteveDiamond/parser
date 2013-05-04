@@ -43,7 +43,7 @@ CONSTRAINT_TYPE = 'Constraint'
 SIGN_KEY = 'sign'
 CURVATURE_KEY = 'curvature'
 NAME_KEY = 'name'
-SUBEXP_KEY = 'subexpressions'
+SUBEXP_KEY = 'children'
 PRIORITY_KEY = 'priority'
 
 PARENT_KEY = 'parent'

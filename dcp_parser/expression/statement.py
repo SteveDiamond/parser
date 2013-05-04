@@ -10,6 +10,7 @@ class Statement(object):
         self.subexpressions = subexpressions
         self.init_subexpressions()
         self.errors = errors
+        self.parent = parent
 
     # Initializes parent attribute of subexpressions
     def init_subexpressions(self):
