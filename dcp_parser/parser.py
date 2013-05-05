@@ -31,27 +31,19 @@ class Parser(object):
         if len(toks) == 0: return
 
         actions = { 
-            Parser.VARIABLE_KEYWORD: self.parse_variables, 
-            Parser.PARAMETER_KEYWORD: self.parse_parameters,
+            Parser.VARIABLE_KEYWORD: 
+                lambda tokenized, statement: self.parse_inputs(tokenized, statement, Variable),
+            Parser.PARAMETER_KEYWORD:
+                lambda tokenized, statement: self.parse_inputs(tokenized, statement, Parameter),
             Parser.COMMENT_KEYWORD: lambda *args: None # Do nothing
         }
         
         # If not one of the actions listed, default is to parse statement.
         actions.get(toks[0], self.parse_statement)(toks, statement)   
 
-    # Reads variable names and adds them to the symbol table
-    # with an affine Expression as the value.
-    def parse_variables(self, tokenized, statement):
-        index = 1
-        while index < len(tokenized):
-            name = tokenized[index]
-            self.check_name_conflict(name)
-            self.symbol_table[name] = Variable(name)
-            index += 1
-
-    # Reads parameter names and adds them to the symbol table
-    # with a constant Expression as the value.
-    def parse_parameters(self, tokenized, statement):
+    # Reads variable or parameter names and adds them to the symbol table.
+    # Sign may be specified.
+    def parse_inputs(self, tokenized, statement, clazz):
         if len(tokenized) <= 1: return
         # Check second token for sign
         potential_sign = tokenized[1].upper()
@@ -61,11 +53,11 @@ class Parser(object):
         else:
             sign = Sign.UNKNOWN
             index = 1
-        # Read parameters
+        # Read variables/parameters
         while index < len(tokenized):
             name = tokenized[index]
             self.check_name_conflict(name)
-            self.symbol_table[name] = Parameter(name, sign)
+            self.symbol_table[name] = clazz(name, sign)
             index += 1
 
     # Check if name conflicts with atom name.

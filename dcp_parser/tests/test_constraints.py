@@ -104,3 +104,21 @@ class TestConstraints(object):
 
         eq = EqConstraint(self.const_exp, self.aff_exp)
         assert_equals(eq.short_name, "==")
+
+    # Test that ==, <=, and >= behave as expected
+    # TODO Known bug that 2 <= exp converted to exp >= 2
+    # Make irrelevant by parsing myself rather than using eval
+    def test_operators(self):
+        assert_equals((self.aff_exp == self.cvx_exp).__class__.__name__, "EqConstraint")
+        assert_equals((self.aff_exp == 2).__class__.__name__, "EqConstraint")
+        assert_equals((2 == self.aff_exp).__class__.__name__, "EqConstraint")
+
+        assert_equals((self.aff_exp <= self.cvx_exp).__class__.__name__, "LeqConstraint")
+        assert_equals((self.aff_exp <= 2).__class__.__name__, "LeqConstraint")
+        #assert_equals((2 <= self.aff_exp).__class__.__name__, "LeqConstraint")
+
+        assert_equals((self.aff_exp >= self.cvx_exp).__class__.__name__, "GeqConstraint")
+        assert_equals((self.aff_exp >= 2).__class__.__name__, "GeqConstraint")
+        #assert_equals((2 >= self.aff_exp).__class__.__name__, "GeqConstraint")
+
+

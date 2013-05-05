@@ -12,6 +12,7 @@ class ConstraintEncoder(json.JSONEncoder):
                         s.TYPE_KEY: s.CONSTRAINT_TYPE,
                         s.NAME_KEY: str(obj),
                         s.SHORT_NAME_KEY: obj.short_name,
+                        s.CLASS_KEY: s.TYPE_TO_NAME[obj.__class__.__name__],
                        }
             # Encode the error as its string representation.
             # Save indexed errors in a map.

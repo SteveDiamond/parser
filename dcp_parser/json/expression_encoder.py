@@ -13,6 +13,7 @@ class ExpressionEncoder(json.JSONEncoder):
                         s.SHORT_NAME_KEY: obj.short_name,
                         s.CURVATURE_KEY: s.TYPE_TO_NAME[str(obj.curvature)],
                         s.SIGN_KEY: s.TYPE_TO_NAME[str(obj.sign)],
+                        s.CLASS_KEY: s.TYPE_TO_NAME[obj.__class__.__name__]
                        }
             # Encode the error as its string representation.
             # Save indexed errors in a map.

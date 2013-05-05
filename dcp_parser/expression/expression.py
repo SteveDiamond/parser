@@ -173,13 +173,13 @@ class Expression(Statement):
                           short_name = settings.MINUS)
     
     def __le__(self,other):
-        return LeqConstraint(self, other)
+        return LeqConstraint(self, Expression.type_check(other))
     
     def __ge__(self,other):
-        return GeqConstraint(self,other)
+        return GeqConstraint(self, Expression.type_check(other))
            
     def __eq__(self,other):
-        return EqConstraint(self,other)
+        return EqConstraint(self, Expression.type_check(other))
            
     def __repr__(self):
         """Representation in Python"""
@@ -200,9 +200,9 @@ class Expression(Statement):
 
 class Variable(Expression):
     """ A convex optimization variable. """
-    def __init__(self, name):
+    def __init__(self, name, sign=Sign.UNKNOWN):
         super(Variable, self).__init__(Curvature.AFFINE,
-                                       Sign.UNKNOWN,
+                                       sign,
                                        name)
     
     def __repr__(self):
@@ -213,7 +213,7 @@ class Variable(Expression):
 
     # Needed so variables can occur in multiple expressions.
     def deepcopy(self):
-        return Variable(self.name)
+        return Variable(self.name, self.sign)
         
 class Parameter(Expression):
     """ A convex optimization parameter. """

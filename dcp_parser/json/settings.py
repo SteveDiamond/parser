@@ -1,6 +1,8 @@
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.expression.sign import Sign
 from dcp_parser.atomic.monotonicity import Monotonicity
+from dcp_parser.expression.constraints import Constraint, EqConstraint, LeqConstraint, GeqConstraint
+from dcp_parser.expression.expression import Expression, Variable, Parameter, Constant
 
 # Maps curvature, monotonicity, and sign to the JSON name.
 TYPE_TO_NAME = {
@@ -16,6 +18,14 @@ TYPE_TO_NAME = {
                 str(Sign.NEGATIVE): 'negative',
                 str(Sign.ZERO): 'zero',
                 str(Sign.UNKNOWN): 'unknown',
+                # Class names
+                EqConstraint.__name__: Constraint.__name__,
+                LeqConstraint.__name__: Constraint.__name__,
+                GeqConstraint.__name__: Constraint.__name__,
+                Expression.__name__: 'Function',
+                Variable.__name__: Variable.__name__,
+                Parameter.__name__: Parameter.__name__,
+                Constant.__name__: Constant.__name__,
                }
 
 # Maps JSON name to curvature, sign, or monotonicity object.
@@ -45,6 +55,7 @@ CURVATURE_KEY = 'curvature'
 NAME_KEY = 'name'
 SUBEXP_KEY = 'children'
 PRIORITY_KEY = 'priority'
+CLASS_KEY = 'class'
 
 PARENT_KEY = 'parent'
 MONOTONICITY_KEY = 'monotonicity'
