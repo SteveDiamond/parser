@@ -39,9 +39,9 @@ class TestJson(object):
         # errors
         for error in exp.errors:
             if error.is_indexed():
-                assert_equals(result.json_errors['indexed_errors'][str(error.index)], str(error))
+                assert_equals(result.json_errors['indexed_errors'][str(error.index)], error.error_message())
             else:
-                assert str(error) in result.json_errors['unsorted_errors']
+                assert error.error_message() in result.json_errors['unsorted_errors']
 
     # # Tests the json encoding and decoding and constraints via the statement encoder.
     def test_constraint_encoder(self):
@@ -58,6 +58,6 @@ class TestJson(object):
         # errors
         for error in constraint.errors:
             if error.is_indexed():
-                assert_equals(result.json_errors['indexed_errors'][str(error.index)], str(error))
+                assert_equals(result.json_errors['indexed_errors'][str(error.index)], error.error_message())
             else:
-                assert str(error) in result.json_errors['unsorted_errors']
+                assert error.error_message() in result.json_errors['unsorted_errors']

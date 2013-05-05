@@ -1,4 +1,3 @@
-import settings
 from dcp_violation import DCPViolation
 
 class ConstraintError(DCPViolation):
@@ -10,9 +9,9 @@ class ConstraintError(DCPViolation):
         self.lh_curvature = lh_curvature
         self.rh_curvature = rh_curvature
 
-    def __str__(self):
-        error_str = " ".join([ConstraintError.BASE_MSG, 
+    # Core error message
+    def error_message(self):
+        return " ".join([ConstraintError.BASE_MSG, 
                               ConstraintError.type_to_name(self.lh_curvature),
                               self.constraint_str,
                               ConstraintError.type_to_name(self.rh_curvature)])
-        return settings.DCP_ERROR_MSG + error_str

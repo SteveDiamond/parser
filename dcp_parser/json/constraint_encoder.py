@@ -19,9 +19,9 @@ class ConstraintEncoder(json.JSONEncoder):
             error_map = {s.UNSORTED_ERRORS_KEY: [], s.INDEXED_ERRORS_KEY: {}}
             for error in obj.errors:
                 if error.is_indexed():
-                    error_map[s.INDEXED_ERRORS_KEY][error.index] = str(error)
+                    error_map[s.INDEXED_ERRORS_KEY][error.index] = error.error_message()
                 else:
-                    error_map[s.UNSORTED_ERRORS_KEY].append(str(error))
+                    error_map[s.UNSORTED_ERRORS_KEY].append(error.error_message())
             json_map[s.ERRORS_KEY] = error_map
 
             json_map[s.SUBEXP_KEY] = [ExpressionEncoder().default(sub) for sub in obj.subexpressions]

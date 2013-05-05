@@ -1,4 +1,3 @@
-import settings
 import dcp_parser.expression.settings as EXP_SET
 from dcp_violation import DCPViolation
 from dcp_parser.expression.curvature import Curvature
@@ -41,7 +40,7 @@ class OperationError(DCPViolation):
                (rh_exp.curvature == Curvature.CONVEX or \
                 rh_exp.curvature == Curvature.CONCAVE)
 
-    def __str__(self):
+    # Core error message
+    def error_message(self):
         (lh_str, rh_str) = self.generate_error_str()
-        error_str = "%s%s %s %s" % (OperationError.BASE_MSG, lh_str, self.op_str, rh_str)
-        return settings.DCP_ERROR_MSG + error_str
+        return "%s%s %s %s" % (OperationError.BASE_MSG, lh_str, self.op_str, rh_str)

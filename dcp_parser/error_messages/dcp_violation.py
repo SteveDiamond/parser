@@ -2,6 +2,7 @@ import abc
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.expression.sign import Sign
 from dcp_parser.atomic.monotonicity import Monotonicity
+import settings
 
 class DCPViolation(object):
     """ Abstract base class for DCP Violations. """
@@ -32,3 +33,12 @@ class DCPViolation(object):
     # Distinguishes OperationErrors from CompositionErrors and ConstraintErrors
     def is_indexed(self):
         return hasattr(self, 'index')
+
+    # Core error message
+    @abc.abstractmethod
+    def error_message(self):
+        return NotImplemented
+
+    # Error message with preamble
+    def __str__(self):
+        return settings.DCP_ERROR_MSG + self.error_message()
