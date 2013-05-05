@@ -23,8 +23,9 @@ class ExpressionEncoder(json.JSONEncoder):
                 else:
                     error_map[s.UNSORTED_ERRORS_KEY].append(str(error))
             json_map[s.ERRORS_KEY] = error_map
-
-            json_map[s.SUBEXP_KEY] = [self.default(sub) for sub in obj.subexpressions]
+            # Only include subexpression attribute if non-empty
+            if len(obj.subexpressions) > 0:
+                json_map[s.SUBEXP_KEY] = [self.default(sub) for sub in obj.subexpressions]
             # Ignore monotonicity if None (i.e. not an atomic function)
             if obj.monotonicity is not None:
                 json_map[s.MONOTONICITY_KEY] = [s.TYPE_TO_NAME[str(tonicity)]
@@ -43,7 +44,10 @@ class ExpressionEncoder(json.JSONEncoder):
         curvature = s.NAME_TO_TYPE[dct[s.CURVATURE_KEY]]
         sign = s.NAME_TO_TYPE[dct[s.SIGN_KEY]]
         name = dct[s.NAME_KEY]
-        subexpressions = [ExpressionEncoder.as_expression(sub) for sub in dct[s.SUBEXP_KEY]]
+        if s.SUBEXP_KEY in dct:
+            subexpressions = [ExpressionEncoder.as_expression(sub) for sub in dct[s.SUBEXP_KEY]]
+        else:
+            subexpressions = []
         monotonicity = None
         if s.MONOTONICITY_KEY in dct:
             monotonicity = [s.NAME_TO_TYPE[tonicity] for tonicity in dct[s.MONOTONICITY_KEY]]

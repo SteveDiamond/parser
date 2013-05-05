@@ -15,7 +15,7 @@ TYPE_TO_NAME = {
                 str(Sign.POSITIVE): 'positive',
                 str(Sign.NEGATIVE): 'negative',
                 str(Sign.ZERO): 'zero',
-                str(Sign.UNKNOWN): 'unknown sign',
+                str(Sign.UNKNOWN): 'unknown',
                }
 
 # Maps JSON name to curvature, sign, or monotonicity object.
@@ -31,7 +31,7 @@ NAME_TO_TYPE = {
                 'positive': Sign.POSITIVE,
                 'negative': Sign.NEGATIVE,
                 'zero': Sign.ZERO,
-                'unknown sign': Sign.UNKNOWN,
+                'unknown': Sign.UNKNOWN,
                }
 
 # Type keys and values
