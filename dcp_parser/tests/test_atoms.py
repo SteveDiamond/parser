@@ -5,6 +5,7 @@ from dcp_parser.atomic.monotonicity import Monotonicity
 import dcp_parser.atomic.atom_loader as atom_loader
 from dcp_parser.atomic.atoms import *
 from nose.tools import *
+import inspect
 
 class TestAtoms(object):
     """ Unit tests for the atomic/monotonicity class. """
@@ -53,9 +54,24 @@ class TestAtoms(object):
     # Test short names for atoms
     def test_short_names(self):
         atom_dict = atom_loader.generate_atom_dict()
-        exp = atom_dict['square'](self.conc_exp + self.cvx_exp)
-        assert_equals(exp.short_name, 'square')
-
+        # Non-standard short names
+        special_names = ['norm', 'norm_largest','huber','berhu','huber_pos','huber_circ','pow_p',
+                         'pow_pos','pow_abs','sum_largest','sum_smallest'];
+        
+        # Test short names for all standard atoms
+        for subclass in atom_loader.get_subclasses(Atom):
+            name = subclass.__name__.lower()
+            if name not in special_names:
+                print name
+                (args, varargs, keywords, defaults) = inspect.getargspec(subclass.__init__)
+                new_args = [self.cvx_exp] * (len(args)-1)
+                print len(args)
+                if varargs is not None:
+                    new_args.append(self.cvx_exp)
+                    new_args.append(self.cvx_exp)
+                atom = subclass(*new_args)
+                assert_equals(atom.short_name(), name)
+            
         exp = atom_dict['norm'](self.conc_exp, self.cvx_exp, 3)
         assert_equals(exp.short_name, 'norm(...,3)')
 
@@ -529,10 +545,10 @@ class TestAtoms(object):
             assert_equals(str(e), "Invalid value for k in sum_largest(*vector,k).")
 
     def test_sum_smallest(self):
-        assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).curvature(), Curvature.CONCAVE)
+        assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).curvature(), Curvature.NONCONVEX)
         assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).sign(), Sign.UNKNOWN)
 
-        assert_equals(Sum_smallest(self.conc_exp, 1).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_smallest(self.conc_exp, 1).curvature(), Curvature.CONCAVE)
         assert_equals(Sum_smallest(self.conc_exp, self.noncvx_exp, 1).curvature(), Curvature.NONCONVEX)
 
         assert_equals(len(Sum_smallest(self.cvx_pos, self.aff_exp, self.conc_neg, 2).arguments()), 3)

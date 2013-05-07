@@ -316,6 +316,11 @@ class Abs(Norm):
     def __init__(self, x):
         super(Abs,self).__init__(x,1)
 
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return self.name()
+
 class Entr(Atom):
     """ The entropy function -x*log(x) """
     def __init__(self, x):
@@ -469,7 +474,7 @@ class Norm_largest(Atom):
         # Use last argument as k
         last_index = len(args)-1
         if len(args) > 0 and isinstance(args[last_index],Number):
-            k = args[last_index]
+            self.k = args[last_index]
             args = args[:-1]
             super(Norm_largest, self).__init__(*args)
         else:
@@ -491,6 +496,11 @@ class Norm_largest(Atom):
             monotonicity = Norm_largest.ABS_SIGN_TO_MONOTONICITY[sign_str]
             monotonicities.append(monotonicity)
         return monotonicities
+
+    # Returns the atomic expression's string representation
+    # with subexpressions removed.
+    def short_name(self):
+        return "%s(...,%s)" % (self.name(), self.k)
 
 class Pos(Atom):
     """ max{x,0} """
@@ -721,6 +731,6 @@ class Sum_smallest(Sum_largest):
     def signed_curvature(self):
         return Curvature.CONCAVE
 
-    # Always decreasing
+    # Always increasing
     def monotonicity(self):
-        return [Monotonicity.DECREASING] * len(self.args)
+        return [Monotonicity.INCREASING] * len(self.args)
