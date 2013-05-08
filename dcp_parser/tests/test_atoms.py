@@ -54,58 +54,12 @@ class TestAtoms(object):
     # Test short names for atoms
     def test_short_names(self):
         atom_dict = atom_loader.generate_atom_dict()
-        # Non-standard short names
-        special_names = ['norm', 'norm_largest','huber','berhu','huber_pos','huber_circ','pow_p',
-                         'pow_pos','pow_abs','sum_largest','sum_smallest'];
-        
-        # Test short names for all standard atoms
-        for subclass in atom_loader.get_subclasses(Atom):
-            name = subclass.__name__.lower()
-            if name not in special_names:
-                print name
-                (args, varargs, keywords, defaults) = inspect.getargspec(subclass.__init__)
-                new_args = [self.cvx_exp] * (len(args)-1)
-                print len(args)
-                if varargs is not None:
-                    new_args.append(self.cvx_exp)
-                    new_args.append(self.cvx_exp)
-                atom = subclass(*new_args)
-                assert_equals(atom.short_name(), name)
             
-        exp = atom_dict['norm'](self.conc_exp, self.cvx_exp, 3)
-        assert_equals(exp.short_name, 'norm(...,3)')
+        exp = atom_dict['square'](self.conc_exp)
+        assert_equals(exp.short_name, 'square')
 
-        # All Huber
         exp = atom_dict['huber'](self.conc_exp, 100)
-        assert_equals(exp.short_name, 'huber(...,100)')
-
-        exp = atom_dict['berhu'](self.conc_exp, 100)
-        assert_equals(exp.short_name, 'berhu(...,100)')
-
-        exp = atom_dict['huber_pos'](self.conc_exp, 100)
-        assert_equals(exp.short_name, 'huber_pos(...,100)')
-
-        exp = atom_dict['huber_circ'](self.conc_exp, self.aff_exp, 100)
-        assert_equals(exp.short_name, 'huber_circ(...,100)')
-
-        # All pow_p
-        exp = atom_dict['pow_p'](self.cvx_exp, 0.5)
-        assert_equals(exp.short_name, 'pow_p(...,0.5)')
-
-        exp = atom_dict['pow_pos'](self.cvx_exp, 1)
-        assert_equals(exp.short_name, 'pow_pos(...,1)')
-
-        exp = atom_dict['pow_abs'](self.cvx_exp, 1)
-        assert_equals(exp.short_name, 'pow_abs(...,1)')
-
-        # All sum_largest
-        exp = atom_dict['sum_largest'](self.cvx_exp, self.noncvx_exp, self.aff_exp, 2.2)
-        assert_equals(exp.short_name, 'sum_largest(...,2.2)')
-
-        exp = atom_dict['sum_smallest'](self.cvx_exp, self.noncvx_exp, self.aff_exp, 2.2)
-        assert_equals(exp.short_name, 'sum_smallest(...,2.2)')
-
-
+        assert_equals(exp.short_name, 'huber')
 
     # Test specific atoms.
     def test_square(self):

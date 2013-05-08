@@ -306,20 +306,10 @@ class Norm(Atom):
             monotonicities.append(monotonicity)
         return monotonicities
 
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return "%s(...,%s)" % (self.name(), self.p)
-
 class Abs(Norm):
     """ Absolute value of one scalar argument. """
     def __init__(self, x):
         super(Abs,self).__init__(x,1)
-
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return self.name()
 
 class Entr(Atom):
     """ The entropy function -x*log(x) """
@@ -367,11 +357,6 @@ class Huber(Atom):
         arg_sign_str = str(self.args[0].sign)
         monotonicity = Berhu.ABS_SIGN_TO_MONOTONICITY[arg_sign_str]
         return [monotonicity]
-
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return "%s(...,%s)" % (self.name(), self.M)
 
 class Berhu(Huber):
     """ 
@@ -497,11 +482,6 @@ class Norm_largest(Atom):
             monotonicities.append(monotonicity)
         return monotonicities
 
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return "%s(...,%s)" % (self.name(), self.k)
-
 class Pos(Atom):
     """ max{x,0} """
     def __init__(self, x):
@@ -565,12 +545,7 @@ class Pow_p(Atom):
             return [Monotonicity.INCREASING]
         else: # p > 1
             return [Pow_p.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
-
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return "%s(...,%s)" % (self.name(), self.p)
-
+            
 class Pow_abs(Pow_p):
     """ |x|^p """
     def __init__(self,x,p):
@@ -719,11 +694,6 @@ class Sum_largest(Atom):
     # Always increasing.
     def monotonicity(self):
         return [Monotonicity.INCREASING] * len(self.args)
-
-    # Returns the atomic expression's string representation
-    # with subexpressions removed.
-    def short_name(self):
-        return "%s(...,%s)" % (self.name(), self.k)
 
 class Sum_smallest(Sum_largest):
     """ Sum of the smallest k values given. """
