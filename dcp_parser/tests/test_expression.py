@@ -57,27 +57,6 @@ class TestExpression(object):
         assert_equals((-self.cvx_exp).curvature, Curvature.CONCAVE)
         assert_equals((-self.aff_exp).curvature, Curvature.AFFINE)
 
-    # Tests whether expression string representations properly reflect the
-    # parenthesization of the original expression.
-    def test_to_str(self):
-        # Unequal priorities
-        exp = (self.pos_const + self.neg_const) * self.zero_const
-        expected_str = "(" + str(self.pos_const) + " + " + \
-          str(self.neg_const) + ")" + " * " + str(self.zero_const)
-        assert_equals(str(exp), expected_str)
-
-        # Equal priorities
-        exp = self.pos_const + (self.neg_const - self.zero_const)
-        expected_str = str(self.pos_const) + " + " + \
-          "(" + str(self.neg_const) + " - " + str(self.zero_const) + ")" 
-        assert_equals(str(exp), expected_str)
-
-        # Extraneous parentheses
-        exp = (self.pos_const / self.neg_const) * self.zero_const
-        expected_str = str(self.pos_const) + " / " + \
-          str(self.neg_const) + " * " + str(self.zero_const)
-        assert_equals(str(exp), expected_str)
-
     # Tests whether parent is overriden for variables
     # and parameters that are reused.
     def test_parent(self):

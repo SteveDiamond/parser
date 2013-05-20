@@ -47,7 +47,7 @@ class TestParser(object):
           assert_equals(result.sign, Sign.ZERO)
 
           rh_exp = result.subexpressions[1]
-          assert_equals('a * x + d * (y / b - z) + x', str(rh_exp))
+          assert_equals('(a * x + d * (y / b - z) + x)', str(rh_exp))
           assert_equals(rh_exp.curvature, Curvature.AFFINE)
 
       # Test parser with numeric constants
