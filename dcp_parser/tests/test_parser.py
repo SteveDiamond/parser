@@ -35,6 +35,10 @@ class TestParser(object):
 
       # Test parser with only variables and parameters
       def test_basic_eval(self):
+          # Empty string
+          self.parser.parse('')
+          assert_equals(len(self.parser.statements),0)
+
           self.parser.parse('variable x y z')
           self.parser.parse('parameter positive a b')
           self.parser.parse('parameter zero c d')

@@ -103,6 +103,10 @@ class Parser(object):
             ('right','UMINUS', 'UPLUS'),
             )
 
+        # Handle empty input
+        def p_statement_empty(t):
+            'statement : '
+
         # Add variables to the symbol table.
         # Variable sign is optional.
         def p_statement_variables(t):
@@ -215,5 +219,5 @@ class Parser(object):
         def p_error(t):
             print("Syntax error at '%s'" % t.value)
 
-        # Build the parser
+        # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")
