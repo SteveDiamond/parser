@@ -26,7 +26,6 @@ class Expression(Statement):
     
     def __init__(self, curvature, sign, name, 
                  subexpressions = [],
-                 priority = maxint,
                  errors = [],
                  parent = None,
                  monotonicity = None,
@@ -34,30 +33,15 @@ class Expression(Statement):
         self.curvature = curvature
         self.sign = sign
         self.name = name
-        self.priority = priority
         self.monotonicity = monotonicity
         # If no short_name given, default to the full name.
         if short_name is None:
             short_name = self.name
         super(Expression, self).__init__(short_name, subexpressions, errors, parent)
 
-    # Determines whether the subexpressions of a expression constructed
-    # by a binary relation should be parenthesized.
-    def impute_parens(self):
-        # Lower priority operations that happened first
-        # must have been parenthesized.
-        # Likewise with equal priority operations to the right.
-        exp = self.subexpressions[0]
-        exp_str = str(exp)
-        if exp.priority < self.priority:
-            exp_str = "(" + exp_str + ")"
-        self.name = "%s %s" % (exp_str, self.name)
-
-        exp = self.subexpressions[1]
-        exp_str = str(exp)
-        if exp.priority <= self.priority:
-            exp_str = "(" + exp_str + ")"
-        self.name = "%s %s" % (self.name, exp_str)
+    # Adds parentheses around the string representation of the expression.
+    def add_parens(self):
+        self.name = "(" + self.name + ")"
 
     # Verifies that expression is a number or an expression. 
     # If it is a number, it is converted to a constant.
@@ -82,11 +66,9 @@ class Expression(Statement):
         other = Expression.type_check(other)
         exp = Expression(self.curvature + other.curvature,
                           self.sign + other.sign,
-                          settings.PLUS, 
+                          "%s %s %s" % (self.name, settings.PLUS, other.name),
                           [self,other],
-                          settings.PRIORITY_MAP[settings.PLUS],
                           short_name = settings.PLUS)
-        exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.PLUS, self, other, exp)
         return exp
 
@@ -99,11 +81,9 @@ class Expression(Statement):
         other = Expression.type_check(other)
         exp = Expression(self.curvature - other.curvature,
                           self.sign - other.sign,
-                          settings.MINUS, 
+                          "%s %s %s" % (self.name, settings.MINUS, other.name),
                           [self,other],
-                          settings.PRIORITY_MAP[settings.MINUS],
                           short_name = settings.MINUS)
-        exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.MINUS, self, other, exp)
         return exp
 
@@ -131,12 +111,10 @@ class Expression(Statement):
         curvature = self.curvature * other.curvature
         exp = Expression(curvature, 
                          sign, 
-                         settings.MULT, 
+                         "%s %s %s" % (self.name, settings.MULT, other.name),
                          [self,other],
-                         settings.PRIORITY_MAP[settings.MULT],
                          short_name = settings.MULT)
         exp.sign_by_curvature()
-        exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.MULT, self, other, exp)
         return exp
 
@@ -151,12 +129,10 @@ class Expression(Statement):
         curvature = self.curvature / other.curvature
         exp = Expression(curvature, 
                          sign, 
-                         settings.DIV, 
+                         "%s %s %s" % (self.name, settings.DIV, other.name),
                          [self,other],
-                         settings.PRIORITY_MAP[settings.DIV],
                          short_name = settings.DIV)
         exp.sign_by_curvature()
-        exp.impute_parens()
         exp.errors = DCPViolationFactory.operation_error(settings.DIV, self, other, exp)
         return exp
 
@@ -183,15 +159,14 @@ class Expression(Statement):
            
     def __repr__(self):
         """Representation in Python"""
-        return "Expression(%s, %s, %s, %s, %s, %s, %s, %s, %s)" % (self.curvature,
-                                                                   self.sign, 
-                                                                   self.name, 
-                                                                   self.subexpressions,
-                                                                   self.priority,
-                                                                   self.errors,
-                                                                   self.parent,
-                                                                   self.monotonicity,
-                                                                   self.short_name)
+        return "Expression(%s, %s, %s, %s, %s, %s, %s, %s)" % (self.curvature,
+                                                               self.sign, 
+                                                               self.name, 
+                                                               self.subexpressions,
+                                                               self.errors,
+                                                               self.parent,
+                                                               self.monotonicity,
+                                                               self.short_name)
     
     def __str__(self):
         """String representation"""
