@@ -1,10 +1,12 @@
 """ Definitions of atomic functions """
 import abc
+import exceptions
+import copy
 from numbers import Number
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.atomic.monotonicity import Monotonicity
-from dcp_parser.expression.expression import Expression
+from dcp_parser.expression.expression import Expression, Constant
 
 class Atom(object):
     """ Abstract base class for all atoms. """
@@ -81,6 +83,19 @@ class Atom(object):
     @staticmethod
     def atom_to_expression(instance):
         return Expression(instance.curvature(), instance.sign(), Atom.GENERATED_EXPRESSION, instance.arguments())
+
+    # Converts a Constant to its numeric value.
+    # Returns given argument if not a Constant
+    # http://stackoverflow.com/questions/379906/parse-string-to-float-or-int
+    @staticmethod
+    def constant_to_number(constant):
+        if isinstance(constant, Constant):
+            try:
+                return int(constant.name)
+            except exceptions.ValueError:
+                return float(constant.name)
+        else:
+            return constant
 
     # Determines curvature from sign, e.g. x^3 is convex for positive x
     # and concave for negative x.
@@ -278,11 +293,12 @@ class Norm(Atom):
     p defaults to 2.
     """
     def __init__(self, *args):
-        # Set p to last arg if last arg is not an Expression
+        # Set p to last arg if last arg is not a non-Constant Expression
         # Otherwise default to p = 2
         self.p = 2
-        if len(args) > 0 and not isinstance(args[len(args)-1],Expression):
-            self.p = args[len(args)-1]
+        last_arg = Atom.constant_to_number(args[len(args)-1])
+        if len(args) > 0 and not isinstance(last_arg,Expression):
+            self.p = last_arg
             args = args[:-1]
         # Throws error if p is invalid.
         if not ( (isinstance(self.p, Number) and self.p >= 1) or self.p == 'Inf'):
@@ -337,7 +353,7 @@ class Huber(Atom):
     M defaults to 1. M must be positive.
     """
     def __init__(self, x, M=1):
-        self.M = M
+        self.M = Atom.constant_to_number(M)
         # Throws error if p is invalid.
         if not (isinstance(self.M, Number) and self.M > 0):
             raise Exception('Invalid M for %s function, M = %s' \
@@ -395,11 +411,14 @@ class Huber_circ(Huber_pos):
     def __init__(self, *args):
         args = list(args)
         # Default to M=1 if last argument is not a number.
-        M = 1 
-        if len(args) > 0 and isinstance(args[len(args)-1],Number):
-            M = args[len(args)-1]
+        M = 1
+        last_arg = Atom.constant_to_number(args[len(args) - 1])
+        if len(args) > 0 and isinstance(last_arg,Number):
+            M = last_arg
             args = args[:-1]
-        norm = Atom.atom_to_expression(Norm(2,*args))
+        tmp_args = copy.copy(args)
+        tmp_args.append(2)
+        norm = Atom.atom_to_expression(Norm(*tmp_args))
         super(Huber_circ, self).__init__(norm,M)
         self.save_original_args(args)
 
@@ -457,9 +476,9 @@ class Norm_largest(Atom):
     def __init__(self, *args):
         args = list(args)
         # Use last argument as k
-        last_index = len(args)-1
-        if len(args) > 0 and isinstance(args[last_index],Number):
-            self.k = args[last_index]
+        last_arg = Atom.constant_to_number(args[len(args)-1])
+        if len(args) > 0 and isinstance(last_arg,Number):
+            self.k = last_arg
             args = args[:-1]
             super(Norm_largest, self).__init__(*args)
         else:
@@ -513,6 +532,7 @@ class Pow_p(Atom):
     If p < 1 then x^p if x >= 0, else +Inf
     """
     def __init__(self,x,p):
+        p = Atom.constant_to_number(p)
         if not isinstance(p, Number):
             raise Exception('Invalid p for pow_p(x,p), p = %s.' % p)
         self.p = p
@@ -550,6 +570,7 @@ class Pow_abs(Pow_p):
     """ |x|^p """
     def __init__(self,x,p):
         # Must have p >= 1
+        p = Atom.constant_to_number(p)
         if not (isinstance(p, Number) and p >= 1):
             raise Exception('Must have p >= 1 for pow_abs(x,p), but have p = %s.' % p)
         abs_exp = Atom.atom_to_expression(Abs(x))
@@ -560,6 +581,7 @@ class Pow_pos(Pow_p):
     """ max{x,0}^p """
     def __init__(self,x,p):
         # Must have p >= 1
+        p = Atom.constant_to_number(p)
         if not (isinstance(p, Number) and p >= 1):
             raise Exception('Must have p >= 1 for pow_pos(x,p), but have p = %s.' % p)
         pos_exp = Atom.atom_to_expression(Pos(x))
@@ -674,9 +696,9 @@ class Sum_largest(Atom):
     def __init__(self, *args):
         args = list(args)
         # Use last argument as k
-        last_index = len(args)-1
-        if len(args) > 0 and isinstance(args[last_index],Number):
-            self.k = args[last_index]
+        last_arg = Atom.constant_to_number(args[len(args)-1])
+        if len(args) > 0 and isinstance(last_arg,Number):
+            self.k = last_arg
             args = args[:-1]
             super(Sum_largest, self).__init__(*args)
         else:

@@ -41,6 +41,7 @@ class Parser(object):
             str(Sign.NEGATIVE).lower() : 'SIGN',
             str(Sign.ZERO).lower() : 'SIGN',
             str(Sign.UNKNOWN).lower() : 'SIGN',
+            'Inf' : 'STRING_ARG', # Special string arguments for atomic functions.
         }
 
         tokens = [
@@ -69,7 +70,7 @@ class Parser(object):
 
         # Convert float string to value.
         def t_FLOAT(t):
-            r'\d+\.\d*'
+            r'\d*\.\d+'
             t.value = float(t.value)
             return t
 
@@ -174,15 +175,17 @@ class Parser(object):
                 atom = self.atom_dict[t[1]]
                 t[0] = atom(*t[3])
             except:
-                print("Undefined atom '%s'" % t[1])
+                raise Exception("Undefined atom '%s' for arguments %s" % (t[1], t[3]))
 
         # List of expressions.
         def p_expression_list(t):
             '''expression_list : expression
-                         | expression_list COMMA expression '''
-            if len(t) == 2: # Single expression.
+                               | STRING_ARG
+                               | expression_list COMMA expression 
+                               | expression_list COMMA STRING_ARG'''
+            if len(t) == 2: # Single expression or STRING_ARG.
                 t[0] = [t[1]]
-            else: # Concatenated expressions.
+            else: # Concatenated expressions or STRING_ARGs.
                 t[1].append(t[3])
                 t[0] = t[1]
 
@@ -213,11 +216,10 @@ class Parser(object):
             try:
                 t[0] = self.symbol_table[t[1]]
             except LookupError:
-                print("Undefined id '%s'" % t[1])
-                t[0] = Variable(t[1])
+                raise Exception("Undefined id '%s'" % t[1])
 
         def p_error(t):
-            print("Syntax error at '%s'" % t.value)
+            raise Exception("Syntax error at '%s'" % t.value)
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")

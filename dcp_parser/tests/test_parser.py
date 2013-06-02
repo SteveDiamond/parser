@@ -80,22 +80,44 @@ class TestParser(object):
 
           expression = '-square(square(u)) - max(square(v), c)'
           self.parser.parse(expression)
-          result = self.parser.statements[1]
+          result = self.parser.statements[len(self.parser.statements) - 1]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONCAVE)
           assert_equals(result.sign, Sign.NEGATIVE)
 
           expression = 'c * square(log(u)) + max(c, log_sum_exp(max(u, v), c))'
           self.parser.parse(expression)
-          result = self.parser.statements[2]
+          result = self.parser.statements[len(self.parser.statements) - 1]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.NONCONVEX)
           assert_equals(result.sign, Sign.POSITIVE)
 
           # Numeric arguments
-          expression = 'max(2, v)'
+          expression = 'kl_div(u, v)'
           self.parser.parse(expression)
-          result = self.parser.statements[3]
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
+          # Fixed arg expressions
+          expression = 'huber(u, 2)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
+          # Parameterized expressions
+          expression = ("huber(u, 2) + pow_p(u, 2) + huber_circ(u, v, 2) "
+                        "+ pow_pos(v, 3) + pow_abs(u, 5) + sum_largest(u, v, 1) "
+                        "+ norm_largest(v, 2, 2) + norm(v) + norm(v, 2) + huber(u)")
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
+          expression = 'norm(u, Inf)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONVEX)
 
