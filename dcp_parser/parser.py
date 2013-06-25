@@ -165,8 +165,8 @@ class Parser(object):
             elif t[2] == '*': t[0] = t[1] * t[3]
             elif t[2] == '/': t[0] = t[1] / t[3]
             elif t[2] == '==': t[0] = t[1] == t[3]
-            elif t[2] == '<=': t[0] = t[1] <= t[3]
-            elif t[2] == '>=': t[0] = t[1] >= t[3]
+            elif t[2] == '<=': t[0] = t[1].__le__(t[3])
+            elif t[2] == '>=': t[0] = t[1].__ge__(t[3])
 
         # Atomic function.
         def p_expression_atom(t):

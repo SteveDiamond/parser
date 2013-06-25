@@ -156,7 +156,15 @@ class TestParser(object):
           result = self.parser.statements[last]
           assert_equals(expression, str(result))
           assert_equals(len(result.subexpressions), 2)
-          assert_equals(len(result.errors), 1)  
+          assert_equals(len(result.errors), 1)
+
+          expression = 'a * log(x) <= 2'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 1)
 
           expression = 'a * log(x) >= square(y) + b'
           self.parser.parse(expression)
