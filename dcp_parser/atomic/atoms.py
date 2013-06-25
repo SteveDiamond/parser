@@ -143,6 +143,7 @@ class Parameterized(object):
     # If the argument has a default (i.e. default is not None),
     # sets the parameter to the default if the last arg is not a constant or
     # string argument.
+    # If the Atom is not vararg, call set_parameter with only the parameter.
     # Ends by validating parameter.
     # Returns the arguments without the parameter.
     def set_parameter(self, default, *args):
