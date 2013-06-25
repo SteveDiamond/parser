@@ -2,6 +2,7 @@
 import abc
 import exceptions
 import copy
+from types import MethodType
 from numbers import Number
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.curvature import Curvature
@@ -42,15 +43,19 @@ class Atom(object):
 
     # Returns the atomic expression's string representation
     # with subexpressions removed.
-    # For most Atoms this will be the same as the function name.
+    # For non-parameterized Atoms this will be the same as the function name.
+    # For parameterized Atoms this will be name(..., parameter).
     def short_name(self):
-        return self.name()
+        if Parameterized in self.__class__.__bases__:
+            return "%s(..., %s)" % (self.name(), self.parameter)
+        else:
+            return self.name()
 
     # Returns expression arguments passed into the Atom.
     def arguments(self):
         return self.original_args
 
-    # Stores the original args in case they differ from self.args
+    # Stores the original args in case they differ from self.args.
     def save_original_args(self, original_args):
         self.original_args = map(Expression.type_check, original_args)
 
@@ -126,6 +131,35 @@ class Atom(object):
             arg_curvatures.append(monotonicity.dcp_curvature(curvature, arg.curvature))
 
         return Curvature.sum(arg_curvatures)
+
+class Parameterized(object):
+    """ 
+    Abstract base class for all parameterized atoms.
+    All parameterized atoms must inherit from some subclass of Atom and Parameterized.
+    """
+    __metaclass__ = abc.ABCMeta
+
+    # Saves the last argument as self.parameter.
+    # If the argument has a default (i.e. default is not None),
+    # sets the parameter to the default if the last arg is not a constant or
+    # string argument.
+    # Ends by validating parameter.
+    # Returns the arguments without the parameter.
+    def set_parameter(self, default, *args):
+        self.parameter = default
+        if len(args) > 0:
+            last_arg = Atom.constant_to_number(args[len(args)-1])
+            if not isinstance(last_arg,Expression):
+                self.parameter = last_arg
+                args = args[:-1]
+        # Throws error if parameter is invalid.
+        self.validate_parameter()
+        return args
+
+    # Throws an error if the parameter is invalid.
+    @abc.abstractmethod
+    def validate_parameter(self):
+        return NotImplemented
 
 
 """---------------------------------- Atoms ----------------------------------"""
@@ -285,7 +319,7 @@ class Exp(Atom):
     def monotonicity(self):
         return [Monotonicity.INCREASING]
 
-class Norm(Atom):
+class Norm(Atom, Parameterized):
     """ 
     The p-norm for a vector (list of scalar values)
     Use:  Norm(p, *args)
@@ -293,17 +327,16 @@ class Norm(Atom):
     p defaults to 2.
     """
     def __init__(self, *args):
-        # Set p to last arg if last arg is not a non-Constant Expression
-        # Otherwise default to p = 2
-        self.p = 2
-        last_arg = Atom.constant_to_number(args[len(args)-1])
-        if len(args) > 0 and not isinstance(last_arg,Expression):
-            self.p = last_arg
-            args = args[:-1]
-        # Throws error if p is invalid.
-        if not ( (isinstance(self.p, Number) and self.p >= 1) or self.p == 'Inf'):
-            raise Exception('Invalid p-norm, p = %s' % self.p)
+        # Set parameter to last arg if last arg is not a non-Constant Expression
+        # Otherwise default to parameter = 2
+        args = self.set_parameter(2, *args)
         super(Norm,self).__init__(*args)
+    
+    # Throws error if parameter is invalid.
+    def validate_parameter(self):
+        if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or 
+            self.parameter == 'Inf'):
+            raise Exception('Invalid p-norm, p = %s' % self.parameter)
 
     # Always positive
     def sign(self):
@@ -345,7 +378,7 @@ class Entr(Atom):
         return [Monotonicity.NONMONOTONIC]
 
 
-class Huber(Atom):
+class Huber(Atom, Parameterized):
     """ 
     The Huber function
     Huber(x,M) = 2M|x|-M^2 for |x| >= M
@@ -353,12 +386,14 @@ class Huber(Atom):
     M defaults to 1. M must be positive.
     """
     def __init__(self, x, M=1):
-        self.M = Atom.constant_to_number(M)
-        # Throws error if p is invalid.
-        if not (isinstance(self.M, Number) and self.M > 0):
-            raise Exception('Invalid M for %s function, M = %s' \
-                % (self.name(), self.M))
+        self.set_parameter(Atom.constant_to_number(M))
         super(Huber,self).__init__(x)
+
+    # Throws error if parameter is invalid.
+    def validate_parameter(self):
+        if not (isinstance(self.parameter, Number) and self.parameter > 0):
+            raise Exception('Invalid M for %s function, M = %s' \
+                % (self.name(), self.parameter))
 
     # Always positive
     def sign(self):
@@ -374,7 +409,7 @@ class Huber(Atom):
         monotonicity = Berhu.ABS_SIGN_TO_MONOTONICITY[arg_sign_str]
         return [monotonicity]
 
-class Berhu(Huber):
+class Berhu(Huber, Parameterized):
     """ 
     The reversed Huber function
     Berhu(x,M) = |x| for |x| <= M
@@ -382,7 +417,7 @@ class Berhu(Huber):
     M defaults to 1. M must be positive.
     """
 
-class Huber_pos(Huber):
+class Huber_pos(Huber, Parameterized):
     """ Same as Huber for non-negative x, zero for negative x. """
     # Positive unless x negative or zero, in which case zero.
     def sign(self):
@@ -402,7 +437,7 @@ class Huber_pos(Huber):
     def monotonicity(self):
         return [Monotonicity.INCREASING]
 
-class Huber_circ(Huber_pos):
+class Huber_circ(Huber_pos, Parameterized):
     """
     Circularly symmetric Huber function
     Huber_circ(vector, M) is equivalent to huber_pos(norm(x),M)
@@ -411,15 +446,12 @@ class Huber_circ(Huber_pos):
     def __init__(self, *args):
         args = list(args)
         # Default to M=1 if last argument is not a number.
-        M = 1
-        last_arg = Atom.constant_to_number(args[len(args) - 1])
-        if len(args) > 0 and isinstance(last_arg,Number):
-            M = last_arg
-            args = args[:-1]
-        tmp_args = copy.copy(args)
+        args = self.set_parameter(1, *args)
+        # Use Norm
+        tmp_args = copy.copy(list(args))
         tmp_args.append(2)
         norm = Atom.atom_to_expression(Norm(*tmp_args))
-        super(Huber_circ, self).__init__(norm,M)
+        super(Huber_circ, self).__init__(norm,self.parameter)
         self.save_original_args(args)
 
 class Inv_pos(Atom):
@@ -468,20 +500,19 @@ class Kl_div(Atom):
     def monotonicity(self):
         return [Monotonicity.NONMONOTONIC] * len(self.args)
 
-class Norm_largest(Atom):
+class Norm_largest(Atom, Parameterized):
     """ 
     Sum of the k largest magnitudes (i.e. absolute values) in the given arguments.
     norm_largest(vector, k)
     """
     def __init__(self, *args):
-        args = list(args)
         # Use last argument as k
-        last_arg = Atom.constant_to_number(args[len(args)-1])
-        if len(args) > 0 and isinstance(last_arg,Number):
-            self.k = last_arg
-            args = args[:-1]
-            super(Norm_largest, self).__init__(*args)
-        else:
+        args = self.set_parameter(None, *args)
+        super(Norm_largest, self).__init__(*args)
+            
+    # Raises error if the parameter is not a number.
+    def validate_parameter(self):
+        if not isinstance(self.parameter,Number):
             raise Exception("Invalid value for k in norm_largest(*vector,k).")
 
     # Always positive
@@ -524,7 +555,7 @@ class Pos(Atom):
     def monotonicity(self):
         return [Monotonicity.INCREASING]
 
-class Pow_p(Atom):
+class Pow_p(Atom, Parameterized):
     """ 
     pow_pos(x,p)
     If p <= 0 then x^p if x > 0, else +Inf
@@ -532,12 +563,15 @@ class Pow_p(Atom):
     If p < 1 then x^p if x >= 0, else +Inf
     """
     def __init__(self,x,p):
-        p = Atom.constant_to_number(p)
-        if not isinstance(p, Number):
-            raise Exception('Invalid p for pow_p(x,p), p = %s.' % p)
-        self.p = p
+        self.set_parameter(Atom.constant_to_number(p))
         super(Pow_p, self).__init__(x)
+        self.p = self.parameter
         self.x = self.args[0]
+
+    # Raises error if the parameter is not a number.
+    def validate_parameter(self):
+        if not isinstance(self.parameter, Number):
+            raise Exception('Invalid p for pow_p(x,p), p = %s.' % self.parameter)
 
     # Depends on p and the sign of x
     def sign(self):
@@ -566,27 +600,33 @@ class Pow_p(Atom):
         else: # p > 1
             return [Pow_p.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
             
-class Pow_abs(Pow_p):
+class Pow_abs(Pow_p, Parameterized):
     """ |x|^p """
     def __init__(self,x,p):
         # Must have p >= 1
-        p = Atom.constant_to_number(p)
-        if not (isinstance(p, Number) and p >= 1):
-            raise Exception('Must have p >= 1 for pow_abs(x,p), but have p = %s.' % p)
         abs_exp = Atom.atom_to_expression(Abs(x))
         super(Pow_abs, self).__init__(abs_exp,p)
         self.save_original_args([x])
 
-class Pow_pos(Pow_p):
+    # Raises error if the parameter is not a number >= 1.
+    def validate_parameter(self):
+        if not (isinstance(self.parameter, Number) and self.parameter >= 1):
+            raise Exception('Must have p >= 1 for pow_abs(x,p), but have p = %s.' % self.parameter)
+
+class Pow_pos(Pow_p, Parameterized):
     """ max{x,0}^p """
     def __init__(self,x,p):
         # Must have p >= 1
-        p = Atom.constant_to_number(p)
-        if not (isinstance(p, Number) and p >= 1):
-            raise Exception('Must have p >= 1 for pow_pos(x,p), but have p = %s.' % p)
         pos_exp = Atom.atom_to_expression(Pos(x))
         super(Pow_pos, self).__init__(pos_exp,p)
         self.save_original_args([x])
+
+
+    # Raises error if the parameter is not a number >= 1.
+    def validate_parameter(self):
+        if not (isinstance(self.parameter, Number) and self.parameter >= 1):
+            raise Exception('Must have p >= 1 for pow_pos(x,p), but have p = %s.' % self.parameter)
+
 
 class Square_abs(Pow_abs):
     """ |x|^2 """
@@ -691,17 +731,16 @@ class Sum_square_pos(Sum_square):
         super(Sum_square_pos,self).__init__(*exp_vec)
         self.save_original_args(list(x))
 
-class Sum_largest(Atom):
+class Sum_largest(Atom, Parameterized):
     """ Sum of the largest k values given. """
     def __init__(self, *args):
-        args = list(args)
         # Use last argument as k
-        last_arg = Atom.constant_to_number(args[len(args)-1])
-        if len(args) > 0 and isinstance(last_arg,Number):
-            self.k = last_arg
-            args = args[:-1]
-            super(Sum_largest, self).__init__(*args)
-        else:
+        args = self.set_parameter(None, *args)
+        super(Sum_largest, self).__init__(*args)
+   
+    # Raises error if the parameter is not a number.
+    def validate_parameter(self):
+        if not isinstance(self.parameter,Number):
             raise Exception("Invalid value for k in %s(*vector,k)." % self.name())
 
     # Always unknown
@@ -717,7 +756,7 @@ class Sum_largest(Atom):
     def monotonicity(self):
         return [Monotonicity.INCREASING] * len(self.args)
 
-class Sum_smallest(Sum_largest):
+class Sum_smallest(Sum_largest, Parameterized):
     """ Sum of the smallest k values given. """
     # Always concave
     def signed_curvature(self):
