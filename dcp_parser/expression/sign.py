@@ -29,23 +29,6 @@ class Sign(object):
         for sign in signs:
             sum_sign = sum_sign + sign
         return sum_sign
-
-    # Largest sign
-    def max(*signs):
-        max_sign = Sign.NEGATIVE
-        for sign in signs:
-            if sign > max_sign:
-                max_sign = sign
-        return max_sign
-
-    # Smallest sign
-    @staticmethod
-    def min(*signs):
-        min_sign = Sign.POSITIVE
-        for sign in signs:
-            if sign < min_sign:
-                min_sign = sign
-        return min_sign
         
     def __add__(self, other):
         sign_val = Sign.SIGN_MAP[self.sign_str] | Sign.SIGN_MAP[other.sign_str]

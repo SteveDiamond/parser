@@ -185,7 +185,7 @@ class Max(Atom):
     # Negative if all arguments negative.
     # Zero if at least one arg zero and all others negative.
     def sign(self):
-        return Sign.max(*self.argument_signs())
+        return max(*self.argument_signs())
 
     # Always convex
     def signed_curvature(self):
@@ -202,7 +202,7 @@ class Min(Atom):
     # Unknown if at least one arg unknown and all others positive.
     # Positive if all args positive.
     def sign(self):
-        return Sign.min(*self.argument_signs())
+        return min(*self.argument_signs())
 
     # Always convex
     def signed_curvature(self):
@@ -478,7 +478,7 @@ class Kl_div(Atom):
         # Requires that x,y be non-negative.
         if x.sign < Sign.ZERO or y.sign < Sign.ZERO:
             raise Exception("kl_div does not accept negative arguments.")
-        elif Sign.min(x.sign, y.sign) == Sign.ZERO and x.sign != y.sign:
+        elif min(x.sign, y.sign) == Sign.ZERO and x.sign != y.sign:
             raise Exception("kl_div(x,y) requires that x == 0 if and only if y == 0.")
 
     # Always unknown
