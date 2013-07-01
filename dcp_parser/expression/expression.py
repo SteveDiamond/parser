@@ -145,14 +145,13 @@ class Expression(Statement):
            
     def __repr__(self):
         """Representation in Python"""
-        return "Expression(%s, %s, %s, %s, %s, %s, %s, %s)" % (self.curvature,
-                                                               self.sign, 
-                                                               self.name, 
-                                                               self.subexpressions,
-                                                               self.errors,
-                                                               self.parent,
-                                                               self.monotonicity,
-                                                               self.short_name)
+        return "Expression(%s, %s, %s, %s, %s, %s, %s)" % (self.curvature,
+                                                           self.sign, 
+                                                           self.name, 
+                                                           self.subexpressions,
+                                                           self.errors,
+                                                           self.monotonicity,
+                                                           self.short_name)
     
     def __str__(self):
         """String representation"""
@@ -171,7 +170,7 @@ class Variable(Expression):
 
     def __str__(self):
         return self.name
-        
+
         
 class Parameter(Expression):
     """ A convex optimization parameter. """
