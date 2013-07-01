@@ -57,7 +57,6 @@ SUBEXP_KEY = 'children'
 PRIORITY_KEY = 'priority'
 CLASS_KEY = 'class'
 
-PARENT_KEY = 'parent'
 MONOTONICITY_KEY = 'monotonicity'
 SHORT_NAME_KEY = 'short_name'
 

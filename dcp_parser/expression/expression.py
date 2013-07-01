@@ -23,11 +23,10 @@ class Expression(Statement):
     Monotonicity stores the monotonicity in each argument for atomic functions.
     short_name is the name without the subexpressions, i.e. "x + y" is "+".
     """
-    # TODO should there be parent? If not, no type_check.
+
     def __init__(self, curvature, sign, name, 
                  subexpressions = [],
                  errors = [],
-                 parent = None,
                  monotonicity = None,
                  short_name = None): 
         self.curvature = curvature
@@ -37,7 +36,7 @@ class Expression(Statement):
         # If no short_name given, default to the full name.
         if short_name is None:
             short_name = self.name
-        super(Expression, self).__init__(short_name, subexpressions, errors, parent)
+        super(Expression, self).__init__(short_name, subexpressions, errors)
 
     # Adds parentheses around the string representation of the expression.
     def add_parens(self):
@@ -45,15 +44,10 @@ class Expression(Statement):
 
     # Verifies that expression is a number or an expression. 
     # If it is a number, it is converted to a constant.
-    # If expression is a variable or parameter, it is deep copied.
     @staticmethod
     def type_check(expression):
         if isinstance(expression, Number):
             return Constant(expression)
-        elif isinstance(expression, Variable):
-            return expression.deepcopy()
-        elif isinstance(expression, Parameter):
-            return expression.deepcopy()
         elif isinstance(expression, Expression):
             return expression
         else:
@@ -62,8 +56,6 @@ class Expression(Statement):
                             % (str(expression), expression.__class__.__name__))
     
     def __add__(self, other):
-        self = Expression.type_check(self)
-        other = Expression.type_check(other)
         exp = Expression(self.curvature + other.curvature,
                           self.sign + other.sign,
                           "%s %s %s" % (self.name, settings.PLUS, other.name),
@@ -77,8 +69,6 @@ class Expression(Statement):
         return settings.type_check(other) + self
     
     def __sub__(self, other):
-        self = Expression.type_check(self)
-        other = Expression.type_check(other)
         exp = Expression(self.curvature - other.curvature,
                           self.sign - other.sign,
                           "%s %s %s" % (self.name, settings.MINUS, other.name),
@@ -105,8 +95,6 @@ class Expression(Statement):
                 self.curvature = self.curvature.sign_mult(sign)
 
     def __mul__(self, other):
-        self = Expression.type_check(self)
-        other = Expression.type_check(other)
         sign = self.sign * other.sign
         curvature = self.curvature * other.curvature
         exp = Expression(curvature, 
@@ -123,8 +111,6 @@ class Expression(Statement):
         return Expression.type_check(other) * self
 
     def __div__(self, other):
-        self = Expression.type_check(self)
-        other = Expression.type_check(other)
         sign = self.sign / other.sign
         curvature = self.curvature / other.curvature
         exp = Expression(curvature, 
@@ -185,10 +171,7 @@ class Variable(Expression):
 
     def __str__(self):
         return self.name
-
-    # Needed so variables can occur in multiple expressions.
-    def deepcopy(self):
-        return Variable(self.name, self.sign)
+        
         
 class Parameter(Expression):
     """ A convex optimization parameter. """
@@ -201,10 +184,6 @@ class Parameter(Expression):
             
     def __str__(self):
         return self.name
-
-    # Needed so parameters can occur in multiple expressions.
-    def deepcopy(self):
-        return Parameter(self.name, self.sign)
     
         
 class Constant(Expression):

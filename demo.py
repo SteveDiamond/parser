@@ -35,10 +35,11 @@ def select_expression(expressions):
     return expressions[index]
 
 def explore_parse_trees(parser):
+    parent_stack = []
     exp = select_expression(parser.statements)
     while True:
         display_root(exp)
-        exp = select_child(exp)
+        exp = select_child(exp, parent_stack)
 
 def display_root(exp):
     print
@@ -52,7 +53,7 @@ def display_root(exp):
             print "Argument %i:" % error.index
         print str(error)
 
-def select_child(exp):
+def select_child(exp, parent_stack):
     num_children = len(exp.subexpressions)
     if num_children > 0:
       print "Child expressions:"
@@ -61,13 +62,14 @@ def select_child(exp):
           print "Expression %i: %s" % (i, child)
     index = int(raw_input('Select a child expression by index (-1 for parent): '))
     if index == -1:
-        if exp.parent is None:
+        if len(parent_stack) == 0:
             return exp
         else:
-            return exp.parent
+            return parent_stack.pop()
     elif num_children == 0:
         return exp
     else:
+        parent_stack.append(exp)
         return exp.subexpressions[index]
 
 if __name__ == "__main__":
