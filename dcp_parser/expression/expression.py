@@ -23,13 +23,13 @@ class Expression(Statement):
     Monotonicity stores the monotonicity in each argument for atomic functions.
     short_name is the name without the subexpressions, i.e. "x + y" is "+".
     """
-    
+    # TODO should there be parent? If not, no type_check.
     def __init__(self, curvature, sign, name, 
                  subexpressions = [],
                  errors = [],
                  parent = None,
                  monotonicity = None,
-                 short_name = None):
+                 short_name = None): 
         self.curvature = curvature
         self.sign = sign
         self.name = name

@@ -185,11 +185,7 @@ class Max(Atom):
     # Negative if all arguments negative.
     # Zero if at least one arg zero and all others negative.
     def sign(self):
-        largest = Sign.NEGATIVE
-        for arg in self.args:
-            if arg.sign > largest:
-                largest = arg.sign
-        return largest
+        return Sign.max(*self.argument_signs())
 
     # Always convex
     def signed_curvature(self):
@@ -206,11 +202,7 @@ class Min(Atom):
     # Unknown if at least one arg unknown and all others positive.
     # Positive if all args positive.
     def sign(self):
-        smallest = Sign.POSITIVE
-        for arg in self.args:
-            if arg.sign < smallest:
-                smallest = arg.sign
-        return smallest
+        return Sign.min(*self.argument_signs())
 
     # Always convex
     def signed_curvature(self):
@@ -579,7 +571,7 @@ class Pow_p(Atom, Parameterized):
         if self.p <= 0:
             return Sign.POSITIVE
         elif self.p <= 1:
-            return Sign.min(Sign.POSITIVE, self.x.sign)
+            return self.x.sign
         else: # p > 1
             return Sign.POSITIVE
 

@@ -30,6 +30,14 @@ class Sign(object):
             sum_sign = sum_sign + sign
         return sum_sign
 
+    # Largest sign
+    def max(*signs):
+        max_sign = Sign.NEGATIVE
+        for sign in signs:
+            if sign > max_sign:
+                max_sign = sign
+        return max_sign
+
     # Smallest sign
     @staticmethod
     def min(*signs):
