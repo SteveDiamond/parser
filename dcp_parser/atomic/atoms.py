@@ -215,12 +215,10 @@ class Min(Atom):
 class Log(Atom):
     """ Natural logarithm """
     def __init__(self, arg):
-        # Throws error if argument is negative or zero.
-        # TODO correct?
         super(Log, self).__init__(arg)
-        sign = self.args[0].sign
-        if sign == Sign.NEGATIVE or sign == Sign.ZERO:
-            raise Exception('log only accepts positive arguments.')
+        # Throws error if the argument is negative or zero.
+        if self.args[0].sign <= Sign.ZERO:
+            raise Exception('log does not accept negative arguments.')
 
     # Always unknown.
     def sign(self):
@@ -329,7 +327,9 @@ class Norm(Atom, Parameterized):
     def validate_parameter(self):
         if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or 
             self.parameter == 'Inf'):
-            raise Exception('Invalid p-norm, p = %s' % self.parameter)
+            raise Exception(
+                "Invalid value %s for p in norm(...,p)." % self.parameter
+                )
 
     # Always positive
     def sign(self):
@@ -385,8 +385,9 @@ class Huber(Atom, Parameterized):
     # Throws error if parameter is invalid.
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter > 0):
-            raise Exception('Invalid M for %s function, M = %s' \
-                % (self.name(), self.parameter))
+            raise Exception(
+                "Invalid value %s for M in %s(...,M)." % (self.parameter, self.name())
+                )
 
     # Always positive
     def sign(self):
@@ -453,7 +454,7 @@ class Inv_pos(Atom):
         super(Inv_pos, self).__init__(x)
         # Requires that x be non-zero and non-negative
         if x.sign <= Sign.ZERO:
-            raise Exception("inv_pos only accepts positive arguments.")
+            raise Exception("inv_pos does not accept negative arguments.")
 
     # Always positive
     def sign(self):
@@ -506,7 +507,9 @@ class Norm_largest(Atom, Parameterized):
     # Raises error if the parameter is not a number.
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
-            raise Exception("Invalid value for k in norm_largest(*vector,k).")
+            raise Exception(
+                "Invalid value %s for k in norm_largest(...,k)." % self.parameter
+                )
 
     # Always positive
     def sign(self):
@@ -564,7 +567,9 @@ class Pow_p(Atom, Parameterized):
     # Raises error if the parameter is not a number.
     def validate_parameter(self):
         if not isinstance(self.parameter, Number):
-            raise Exception('Invalid p for pow_p(x,p), p = %s.' % self.parameter)
+            raise Exception(
+                "Invalid value %s for p in pow_p(...,p)." % self.parameter
+                )
 
     # Depends on p and the sign of x
     def sign(self):
@@ -604,7 +609,7 @@ class Pow_abs(Pow_p, Parameterized):
     # Raises error if the parameter is not a number >= 1.
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter >= 1):
-            raise Exception('Must have p >= 1 for pow_abs(x,p), but have p = %s.' % self.parameter)
+            raise Exception('Must have p >= 1 for pow_abs(...,p), but have p = %s.' % self.parameter)
 
 class Pow_pos(Pow_p, Parameterized):
     """ max{x,0}^p """
@@ -618,7 +623,7 @@ class Pow_pos(Pow_p, Parameterized):
     # Raises error if the parameter is not a number >= 1.
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter >= 1):
-            raise Exception('Must have p >= 1 for pow_pos(x,p), but have p = %s.' % self.parameter)
+            raise Exception('Must have p >= 1 for pow_pos(...,p), but have p = %s.' % self.parameter)
 
 
 class Square_abs(Pow_abs):
@@ -662,8 +667,8 @@ class Quad_over_lin(Atom):
         self.y = self.args[len(self.args)-1]
         self.vector = self.args[:-1]
         # Throws error if y is negative or zero.
-        if self.y.sign == Sign.NEGATIVE or self.y.sign == Sign.ZERO:
-            raise Exception('%s only accepts positive divisor arguments.' % self.name())
+        if self.y.sign <= Sign.ZERO:
+            raise Exception('%s does not accept negative divisor arguments.' % self.name())
 
     # Positive unless all vector args are zero.
     def sign(self):
@@ -734,7 +739,9 @@ class Sum_largest(Atom, Parameterized):
     # Raises error if the parameter is not a number.
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
-            raise Exception("Invalid value for k in %s(*vector,k)." % self.name())
+            raise Exception(
+                "Invalid value %s for k in %s(...,k)." % (self.parameter, self.name())
+                )
 
     # Always unknown
     # Could determine from signs of elements, but would be obscure.

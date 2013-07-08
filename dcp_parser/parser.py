@@ -171,11 +171,10 @@ class Parser(object):
         # Atomic function.
         def p_expression_atom(t):
             'expression : ID LPAREN expression_list RPAREN'
-            try:
-                atom = self.atom_dict[t[1]]
-                t[0] = atom(*t[3])
-            except:
-                raise Exception("Undefined atom '%s' for arguments %s" % (t[1], t[3]))
+            if not t[1] in self.atom_dict:
+                raise Exception("'%s' is not a known atom." % t[1])
+            atom = self.atom_dict[t[1]]
+            t[0] = atom(*t[3])
 
         # List of expressions.
         def p_expression_list(t):
@@ -216,10 +215,10 @@ class Parser(object):
             try:
                 t[0] = self.symbol_table[t[1]]
             except LookupError:
-                raise Exception("Undefined id '%s'" % t[1])
+                raise Exception("'%s' is not a known variable or parameter." % t[1])
 
         def p_error(t):
-            raise Exception("Syntax error at '%s'" % t.value)
+            raise Exception("Syntax error.")
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")
