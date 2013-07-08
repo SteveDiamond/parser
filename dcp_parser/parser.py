@@ -218,7 +218,7 @@ class Parser(object):
                 raise Exception("'%s' is not a known variable or parameter." % t[1])
 
         def p_error(t):
-            raise Exception("Syntax error.")
+            raise Exception("Invalid syntax.")
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")
