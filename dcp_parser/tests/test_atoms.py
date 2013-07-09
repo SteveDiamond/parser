@@ -232,14 +232,14 @@ class TestAtoms(object):
             Norm(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value 0 for p in norm(...,p).')
+            assert_equals(str(e), "Invalid value '0' for p in norm(...,p).")
 
         # Check error message
         try:
             Norm(Constant(-2), 'not inf')
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value not inf for p in norm(...,p).')
+            assert_equals(str(e), "Invalid value 'not inf' for p in norm(...,p).")
 
         # Check error message
         try:
@@ -271,7 +271,7 @@ class TestAtoms(object):
             Berhu(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value 0 for M in berhu(...,M).')
+            assert_equals(str(e), "Invalid value '0' for M in berhu(...,M).")
 
     def test_entr(self):
         assert_equals(Entr(self.aff_exp).curvature(), Curvature.CONCAVE)
@@ -295,7 +295,7 @@ class TestAtoms(object):
             Huber(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value 0 for M in huber(...,M).')
+            assert_equals(str(e), "Invalid value '0' for M in huber(...,M).")
 
     def test_huber_pos(self):
         assert_equals(Huber_pos(self.aff_exp).curvature(), Curvature.CONVEX)
@@ -311,7 +311,7 @@ class TestAtoms(object):
             Huber_pos(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value 0 for M in huber_pos(...,M).')
+            assert_equals(str(e), "Invalid value '0' for M in huber_pos(...,M).")
 
     def test_huber_circ(self):
         assert_equals(Huber_circ(self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
@@ -327,7 +327,7 @@ class TestAtoms(object):
             Huber_circ(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value 0 for M in huber_circ(...,M).')
+            assert_equals(str(e), "Invalid value '0' for M in huber_circ(...,M).")
 
     def test_inv_pos(self):
         assert_equals(Inv_pos(self.cvx_exp).curvature(), Curvature.NONCONVEX)
@@ -379,7 +379,7 @@ class TestAtoms(object):
             Norm_largest(Constant(-2), 'invalid')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value invalid for k in norm_largest(...,k).")
+            assert_equals(str(e), "Invalid value 'invalid' for k in norm_largest(...,k).")
 
     def test_pos(self):
         assert_equals(Pos(self.conc_exp).curvature(), Curvature.NONCONVEX)
@@ -415,7 +415,7 @@ class TestAtoms(object):
             Pow_p(Constant(-2), 'wrong')
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Invalid value wrong for p in pow_p(...,p).')
+            assert_equals(str(e), "Invalid value 'wrong' for p in pow_p(...,p).")
 
     def test_pow_abs(self):
         assert_equals(Pow_abs(self.cvx_pos,2).curvature(), Curvature.CONVEX)
@@ -549,7 +549,7 @@ class TestAtoms(object):
             Sum_largest(self.cvx_pos, 'invalid')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value invalid for k in sum_largest(...,k).")
+            assert_equals(str(e), "Invalid value 'invalid' for k in sum_largest(...,k).")
 
     def test_sum_smallest(self):
         assert_equals(Sum_smallest(self.cvx_exp, self.aff_exp, 2).curvature(), Curvature.NONCONVEX)
@@ -566,4 +566,4 @@ class TestAtoms(object):
             Sum_smallest(self.cvx_pos, 'invalid')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value invalid for k in sum_smallest(...,k).")
+            assert_equals(str(e), "Invalid value 'invalid' for k in sum_smallest(...,k).")

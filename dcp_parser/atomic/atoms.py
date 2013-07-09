@@ -328,7 +328,7 @@ class Norm(Atom, Parameterized):
         if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or 
             self.parameter == 'Inf'):
             raise Exception(
-                "Invalid value %s for p in norm(...,p)." % self.parameter
+                "Invalid value '%s' for p in norm(...,p)." % self.parameter
                 )
 
     # Always positive
@@ -386,7 +386,7 @@ class Huber(Atom, Parameterized):
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter > 0):
             raise Exception(
-                "Invalid value %s for M in %s(...,M)." % (self.parameter, self.name())
+                "Invalid value '%s' for M in %s(...,M)." % (self.parameter, self.name())
                 )
 
     # Always positive
@@ -508,7 +508,7 @@ class Norm_largest(Atom, Parameterized):
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
             raise Exception(
-                "Invalid value %s for k in norm_largest(...,k)." % self.parameter
+                "Invalid value '%s' for k in norm_largest(...,k)." % self.parameter
                 )
 
     # Always positive
@@ -568,7 +568,7 @@ class Pow_p(Atom, Parameterized):
     def validate_parameter(self):
         if not isinstance(self.parameter, Number):
             raise Exception(
-                "Invalid value %s for p in pow_p(...,p)." % self.parameter
+                "Invalid value '%s' for p in pow_p(...,p)." % self.parameter
                 )
 
     # Depends on p and the sign of x
@@ -740,7 +740,7 @@ class Sum_largest(Atom, Parameterized):
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
             raise Exception(
-                "Invalid value %s for k in %s(...,k)." % (self.parameter, self.name())
+                "Invalid value '%s' for k in %s(...,k)." % (self.parameter, self.name())
                 )
 
     # Always unknown
