@@ -213,12 +213,13 @@ class Min(Atom):
         return [Monotonicity.INCREASING] * len(self.args)
 
 class Log(Atom):
-    """ Natural logarithm """
+    """ 
+    Natural logarithm
+    log(x) for x > 0.
+    -Inf for x <= 0.
+    """
     def __init__(self, arg):
         super(Log, self).__init__(arg)
-        # Throws error if the argument is negative or zero.
-        if self.args[0].sign <= Sign.ZERO:
-            raise Exception('log does not accept negative arguments.')
 
     # Always unknown.
     def sign(self):
@@ -248,16 +249,18 @@ class Sum(Atom):
         return [Monotonicity.INCREASING] * len(self.args)
 
 class Geo_mean(Atom):
-    """ (x1*...*xn)^(1/n) """
+    """ 
+    (x1*...*xn)^(1/n) if all xi >= 0.
+    -Inf if any xi < 0.
+    """
     def __init__(self, *args):
         super(Geo_mean, self).__init__(*args)
-        # Throws error if any argument is negative.
-        for arg in self.args:
-            if arg.sign == Sign.NEGATIVE:
-                raise Exception('geo_mean does not accept negative arguments.')
 
-    # Always positive
+    # Positive unless one of the arguments is negative.
     def sign(self):
+        for sign in self.argument_signs():
+            if sign == Sign.NEGATIVE:
+                return Sign.NEGATIVE
         return Sign.POSITIVE
 
     # Always concave
@@ -331,9 +334,12 @@ class Norm(Atom, Parameterized):
                 "Invalid value '%s' for p in norm(...,p)." % self.parameter
                 )
 
-    # Always positive
+    # Positive unless all arguments are zero.
     def sign(self):
-        return Sign.POSITIVE
+        for sign in self.argument_signs():
+            if sign != Sign.ZERO:
+                return Sign.POSITIVE
+        return Sign.ZERO
 
     # Always convex
     def signed_curvature(self):
@@ -449,12 +455,11 @@ class Huber_circ(Huber_pos, Parameterized):
         self.save_original_args(args)
 
 class Inv_pos(Atom):
-    """ 1/max{x,0} """
+    """ 
+    1/x  if x > 0. +Inf if x <= 0.
+    """
     def __init__(self, x):
         super(Inv_pos, self).__init__(x)
-        # Requires that x be non-zero and non-negative
-        if x.sign <= Sign.ZERO:
-            raise Exception("inv_pos does not accept negative arguments.")
 
     # Always positive
     def sign(self):
@@ -472,15 +477,10 @@ class Kl_div(Atom):
     """ 
     Kullback-Leibler distance 
     kl_div(x,y) = x*log(x/y)-x+y
-    Requires x,y non-negative and x == 0 iff y == 0
+    +Inf unless x,y non-negative and x == 0 iff y == 0
     """
     def __init__(self, x,y):
         super(Kl_div, self).__init__(x,y)
-        # Requires that x,y be non-negative.
-        if x.sign < Sign.ZERO or y.sign < Sign.ZERO:
-            raise Exception("kl_div does not accept negative arguments.")
-        elif min(x.sign, y.sign) == Sign.ZERO and x.sign != y.sign:
-            raise Exception("kl_div(x,y) requires that x == 0 if and only if y == 0.")
 
     # Always unknown
     def sign(self):
@@ -551,16 +551,16 @@ class Pos(Atom):
     def monotonicity(self):
         return [Monotonicity.INCREASING]
 
-class Pow_p(Atom, Parameterized):
+class Pow(Atom, Parameterized):
     """ 
-    pow_pos(x,p)
-    If p <= 0 then x^p if x > 0, else +Inf
-    If 0 < p <=1 then x^p if x >= 0, else -Inf
-    If p < 1 then x^p if x >= 0, else +Inf
+    pow(x,p) =
+        If p <= 0 then x^p if x > 0, else +Inf
+        If 0 < p <=1 then x^p if x >= 0, else -Inf
+        If p > 1 then x^p if x >= 0, else +Inf
     """
     def __init__(self,x,p):
         self.set_parameter(Atom.constant_to_number(p))
-        super(Pow_p, self).__init__(x)
+        super(Pow, self).__init__(x)
         self.p = self.parameter
         self.x = self.args[0]
 
@@ -568,7 +568,7 @@ class Pow_p(Atom, Parameterized):
     def validate_parameter(self):
         if not isinstance(self.parameter, Number):
             raise Exception(
-                "Invalid value '%s' for p in pow_p(...,p)." % self.parameter
+                "Invalid value '%s' for p in pow(...,p)." % self.parameter
                 )
 
     # Depends on p and the sign of x
@@ -596,9 +596,9 @@ class Pow_p(Atom, Parameterized):
         elif self.p <= 1:
             return [Monotonicity.INCREASING]
         else: # p > 1
-            return [Pow_p.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
+            return [Pow.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
             
-class Pow_abs(Pow_p, Parameterized):
+class Pow_abs(Pow, Parameterized):
     """ |x|^p """
     def __init__(self,x,p):
         # Must have p >= 1
@@ -611,7 +611,7 @@ class Pow_abs(Pow_p, Parameterized):
         if not (isinstance(self.parameter, Number) and self.parameter >= 1):
             raise Exception('Must have p >= 1 for pow_abs(...,p), but have p = %s.' % self.parameter)
 
-class Pow_pos(Pow_p, Parameterized):
+class Pow_pos(Pow, Parameterized):
     """ max{x,0}^p """
     def __init__(self,x,p):
         # Must have p >= 1
@@ -655,25 +655,20 @@ class Rel_entr(Atom):
 
 class Quad_over_lin(Atom):
     """ 
-    (x'*x)/y = sum_square(vector)/y 
+    quad_over_lin(x,y) = x^2/y
     Last argument is the divisor. All preceding arguments are treated as part of the vector x.
     """
-    def __init__(self, *args):
-        # Requires at least 2 arguments. 
-        # Error message can't be more specific because of subclasses.
-        if len(args) < 2:
-            raise Exception('%s called with too few arguments.' % self.name())
-        super(Quad_over_lin,self).__init__(*args)
-        self.y = self.args[len(self.args)-1]
-        self.vector = self.args[:-1]
+    def __init__(self, x, y):
+        super(Quad_over_lin,self).__init__(x,y)
+        self.x = self.args[0]
+        self.y = self.args[1]
         # Throws error if y is negative or zero.
         if self.y.sign <= Sign.ZERO:
             raise Exception('%s does not accept negative divisor arguments.' % self.name())
 
-    # Positive unless all vector args are zero.
+    # Positive unless denominator is zero.
     def sign(self):
-        vec_signs = self.argument_signs()[:-1]
-        if Sign.sum(*vec_signs) == Sign.ZERO:
+        if self.x.sign == Sign.ZERO:
             return Sign.ZERO
         else:
             return Sign.POSITIVE
@@ -685,13 +680,11 @@ class Quad_over_lin(Atom):
     # Increasing (decreasing) for positive (negative) argument in vector args.
     # Decreasing for divisor arguments
     def monotonicity(self):
-        monotonicities = []
-        # Vector args
-        for scalar in self.vector:
-            sign_str = str(scalar.sign)
-            monotonicity = Norm.ABS_SIGN_TO_MONOTONICITY[sign_str]
-            monotonicities.append(monotonicity)
-        # Divisor arg
+        # Numerator
+        sign_str = str(self.x.sign)
+        monotonicity = Norm.ABS_SIGN_TO_MONOTONICITY[sign_str]
+        monotonicities = [monotonicity]
+        # Denominator
         monotonicities.append(Monotonicity.DECREASING)
         return monotonicities
 
@@ -702,11 +695,12 @@ class Square(Quad_over_lin):
         self.save_original_args([x])
 
 class Sum_square(Quad_over_lin):
-    """ x1^2 + ... + xn^2 = quad_over_lin(x1,...,xn,1) """
+    """ x1^2 + ... + xn^2 = quad_over_lin(norm(x1,...,xn),1) """
     def __init__(self, *x):
         args = list(x)
-        args.append(1) # Add divisor arg.
-        super(Sum_square,self).__init__(*args)
+        args.append(2)
+        norm_exp = Atom.atom_to_expression(Norm(*args))
+        super(Sum_square,self).__init__(norm_exp, 1)
         self.save_original_args(list(x))
 
 class Sum_square_abs(Sum_square):

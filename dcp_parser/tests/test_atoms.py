@@ -55,7 +55,7 @@ class TestAtoms(object):
     def test_short_names(self):
         atom_dict = atom_loader.generate_atom_dict()
         # Non-standard short names
-        special_names = ['norm', 'norm_largest','huber','berhu','huber_pos','huber_circ','pow_p',
+        special_names = ['norm', 'norm_largest','huber','berhu','huber_pos','huber_circ','pow',
                          'pow_pos','pow_abs','sum_largest','sum_smallest'];
         
         # Test short names for all standard atoms
@@ -91,8 +91,8 @@ class TestAtoms(object):
         assert_equals(exp.short_name, 'huber_circ(..., 100)')
 
         # All pow_p
-        exp = atom_dict['pow_p'](self.cvx_exp, 0.5)
-        assert_equals(exp.short_name, 'pow_p(..., 0.5)')
+        exp = atom_dict['pow'](self.cvx_exp, 0.5)
+        assert_equals(exp.short_name, 'pow(..., 0.5)')
 
         exp = atom_dict['pow_pos'](self.cvx_exp, 1)
         assert_equals(exp.short_name, 'pow_pos(..., 1)')
@@ -146,12 +146,6 @@ class TestAtoms(object):
     def test_log(self):
         assert_equals(Log(self.conc_exp).curvature(), Curvature.CONCAVE)
         assert_equals(Log(self.cvx_exp).curvature(), Curvature.NONCONVEX)
-        # Check error message
-        try:
-            Log(Constant(-2))
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'log does not accept negative arguments.')
 
         assert_equals(len(Log(self.cvx_exp).arguments()), 1)
         assert_not_equals(Log(self.cvx_exp).arguments()[0].name, Atom.GENERATED_EXPRESSION)
@@ -181,13 +175,7 @@ class TestAtoms(object):
         assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).curvature(), Curvature.CONCAVE)
         assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).sign(), Sign.POSITIVE)
         assert_equals(Geo_mean(self.conc_exp, self.aff_exp, self.cvx_exp).curvature(), Curvature.NONCONVEX)
-        assert_raises(Exception, Geo_mean, Constant(-2))
-        # Check error message
-        try:
-            Geo_mean(Constant(-2))
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'geo_mean does not accept negative arguments.')
+        assert_equals(Geo_mean(Constant(-2)).sign(), Sign.NEGATIVE)
 
         assert_equals(len(Geo_mean(self.cvx_pos, self.conc_pos).arguments()), 2)
         assert_not_equals(Geo_mean(self.cvx_pos, self.conc_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
@@ -196,7 +184,7 @@ class TestAtoms(object):
         assert_equals(Sqrt(self.conc_exp).curvature(), Curvature.CONCAVE)
         assert_equals(Sqrt(self.aff_exp).sign(), Sign.POSITIVE)
         assert_equals(Sqrt(self.cvx_exp).curvature(), Curvature.NONCONVEX)
-        assert_raises(Exception, Sqrt, Constant(-2))
+        assert_equals(Sqrt(Constant(-2)).sign(), Sign.NEGATIVE)
 
         assert_equals(len(Sqrt(self.cvx_pos).arguments()), 1)
         assert_not_equals(Sqrt(self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
@@ -336,13 +324,6 @@ class TestAtoms(object):
         assert_equals(len(Inv_pos(self.cvx_pos).arguments()), 1)
         assert_not_equals(Inv_pos(self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
-        # Check error message
-        try:
-            Inv_pos(Constant(-2))
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'inv_pos does not accept negative arguments.')
-
     def test_kl_div(self):
         assert_equals(Kl_div(self.aff_exp, self.aff_exp).curvature(), Curvature.CONVEX)
         assert_equals(Kl_div(self.conc_exp, self.const_exp).curvature(), Curvature.NONCONVEX)
@@ -350,20 +331,6 @@ class TestAtoms(object):
 
         assert_equals(len(Kl_div(self.cvx_exp, self.noncvx_exp).arguments()), 2)
         assert_not_equals(Kl_div(self.cvx_exp, self.noncvx_exp).arguments()[0].name, Atom.GENERATED_EXPRESSION)
-
-        # Check error message
-        try:
-            Kl_div(Constant(-2), Constant(-1))
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'kl_div does not accept negative arguments.')
-
-         # Check error message
-        try:
-            Kl_div(Constant(0), Constant(1))
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'kl_div(x,y) requires that x == 0 if and only if y == 0.',)
 
     def test_norm_largest(self):
         assert_equals(Norm_largest(self.cvx_pos, self.aff_exp, self.conc_neg, 2).curvature(), Curvature.CONVEX)
@@ -390,32 +357,32 @@ class TestAtoms(object):
         assert_equals(len(Pos(self.cvx_pos).arguments()), 1)
         assert_not_equals(Pos(self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
-    def test_pow_p(self):
-        assert_equals(Pow_p(self.cvx_pos,-1).curvature(), Curvature.NONCONVEX)
-        assert_equals(Pow_p(self.conc_neg,-1).curvature(), Curvature.CONVEX)
-        assert_equals(Pow_p(self.cvx_pos,-1).sign(), Sign.POSITIVE)
+    def test_pow(self):
+        assert_equals(Pow(self.cvx_pos,-1).curvature(), Curvature.NONCONVEX)
+        assert_equals(Pow(self.conc_neg,-1).curvature(), Curvature.CONVEX)
+        assert_equals(Pow(self.cvx_pos,-1).sign(), Sign.POSITIVE)
 
-        assert_equals(Pow_p(self.cvx_pos,0.5).curvature(), Curvature.NONCONVEX)
-        assert_equals(Pow_p(self.cvx_pos,0.5).sign(), Sign.POSITIVE)
-        assert_equals(Pow_p(self.noncvx_exp, 0.5).sign(), Sign.UNKNOWN)
-        assert_equals(Pow_p(self.conc_neg,0.5).curvature(), Curvature.CONCAVE)
-        assert_equals(Pow_p(self.conc_neg,0.5).sign(), Sign.NEGATIVE)
+        assert_equals(Pow(self.cvx_pos,0.5).curvature(), Curvature.NONCONVEX)
+        assert_equals(Pow(self.cvx_pos,0.5).sign(), Sign.POSITIVE)
+        assert_equals(Pow(self.noncvx_exp, 0.5).sign(), Sign.UNKNOWN)
+        assert_equals(Pow(self.conc_neg,0.5).curvature(), Curvature.CONCAVE)
+        assert_equals(Pow(self.conc_neg,0.5).sign(), Sign.NEGATIVE)
 
-        assert_equals(Pow_p(self.cvx_pos,2).curvature(), Curvature.CONVEX)
-        assert_equals(Pow_p(self.conc_neg,2).curvature(), Curvature.CONVEX)
-        assert_equals(Pow_p(self.cvx_neg,2).curvature(), Curvature.NONCONVEX)
-        assert_equals(Pow_p(self.conc_pos,2).curvature(), Curvature.NONCONVEX)
-        assert_equals(Pow_p(self.noncvx_exp, 2).sign(), Sign.POSITIVE)
+        assert_equals(Pow(self.cvx_pos,2).curvature(), Curvature.CONVEX)
+        assert_equals(Pow(self.conc_neg,2).curvature(), Curvature.CONVEX)
+        assert_equals(Pow(self.cvx_neg,2).curvature(), Curvature.NONCONVEX)
+        assert_equals(Pow(self.conc_pos,2).curvature(), Curvature.NONCONVEX)
+        assert_equals(Pow(self.noncvx_exp, 2).sign(), Sign.POSITIVE)
 
-        assert_equals(len(Pow_p(self.cvx_pos,2).arguments()), 1)
-        assert_not_equals(Pow_p(self.cvx_pos,2).arguments()[0].name, Atom.GENERATED_EXPRESSION)
+        assert_equals(len(Pow(self.cvx_pos,2).arguments()), 1)
+        assert_not_equals(Pow(self.cvx_pos,2).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
         # Check error message
         try:
-            Pow_p(Constant(-2), 'wrong')
+            Pow(Constant(-2), 'wrong')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value 'wrong' for p in pow_p(...,p).")
+            assert_equals(str(e), "Invalid value 'wrong' for p in pow(...,p).")
 
     def test_pow_abs(self):
         assert_equals(Pow_abs(self.cvx_pos,2).curvature(), Curvature.CONVEX)
@@ -478,22 +445,14 @@ class TestAtoms(object):
 
     def test_quad_over_lin(self):
         assert_equals(Quad_over_lin(self.cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
-        assert_equals(Quad_over_lin(self.cvx_pos, self.aff_exp, self.conc_neg, self.conc_exp).curvature(), 
-            Curvature.CONVEX)
+        assert_equals(Quad_over_lin(self.cvx_pos, self.conc_exp).curvature(), Curvature.CONVEX)
         assert_equals(Quad_over_lin(self.conc_neg, self.cvx_exp).curvature(), Curvature.NONCONVEX)
-        assert_equals(Quad_over_lin(self.cvx_exp, self.cvx_pos, self.conc_exp).curvature(), Curvature.NONCONVEX)
-        assert_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).curvature(), Curvature.NONCONVEX)
-        assert_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).sign(), Sign.POSITIVE)
+        assert_equals(Quad_over_lin(self.cvx_exp, self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Quad_over_lin(self.noncvx_exp, self.conc_exp).curvature(), Curvature.NONCONVEX)
+        assert_equals(Quad_over_lin(self.noncvx_exp, self.conc_exp).sign(), Sign.POSITIVE)
 
-        assert_equals(len(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).arguments()), 3)
-        assert_not_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos, self.conc_exp).arguments()[0].name, Atom.GENERATED_EXPRESSION)
-
-        # Check error message
-        try:
-            Quad_over_lin(self.cvx_pos)
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'quad_over_lin called with too few arguments.')
+        assert_equals(len(Quad_over_lin(self.noncvx_exp, self.conc_exp).arguments()), 2)
+        assert_not_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
         # Check error message
         try:

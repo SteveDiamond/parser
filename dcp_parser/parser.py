@@ -174,7 +174,10 @@ class Parser(object):
             if not t[1] in self.atom_dict:
                 raise Exception("'%s' is not a known atom." % t[1])
             atom = self.atom_dict[t[1]]
-            t[0] = atom(*t[3])
+            try:
+                t[0] = atom(*t[3])
+            except TypeError:
+                raise Exception("Incorrect number of arguments passed to '%s'." % t[1])
 
         # List of expressions.
         def p_expression_list(t):
