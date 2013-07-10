@@ -106,6 +106,12 @@ class TestParser(object):
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONVEX)
 
+          expression = 'pow(u, -2)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
           # Parameterized expressions
           expression = ("huber(u, 2) + pow(u, 2) + huber_circ(u, v, 2) "
                         "+ pow_pos(v, 3) + pow_abs(u, 5) + sum_largest(u, v, 1) "

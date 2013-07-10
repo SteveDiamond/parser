@@ -4,6 +4,7 @@ import exceptions
 import copy
 from types import MethodType
 from numbers import Number
+import dcp_parser.expression.settings as settings
 from dcp_parser.expression.sign import Sign
 from dcp_parser.expression.curvature import Curvature
 from dcp_parser.atomic.monotonicity import Monotonicity
@@ -89,12 +90,15 @@ class Atom(object):
     def atom_to_expression(instance):
         return Expression(instance.curvature(), instance.sign(), Atom.GENERATED_EXPRESSION, instance.arguments())
 
-    # Converts a Constant to its numeric value.
-    # Returns given argument if not a Constant
+    # Converts a Constant or -Constant to its numeric value.
+    # Returns given argument if cannot be converted.
     # http://stackoverflow.com/questions/379906/parse-string-to-float-or-int
     @staticmethod
     def constant_to_number(constant):
-        if isinstance(constant, Constant):
+        if isinstance(constant, Constant) or \
+          (isinstance(constant, Expression) and \
+           len(constant.subexpressions) == 1 and \
+           constant.name ==  settings.MINUS + constant.subexpressions[0].name):
             try:
                 return int(constant.name)
             except exceptions.ValueError:
@@ -180,12 +184,13 @@ class Log_sum_exp(Atom):
 
 class Max(Atom):
     """ Maximum argument. """
-    # Positive if any arg positive.
+    # Positive if any arg positive or zero.
     # Unknown if no args positive and any arg unknown.
     # Negative if all arguments negative.
-    # Zero if at least one arg zero and all others negative.
     def sign(self):
-        return max(*self.argument_signs())
+        # Replace all zeros with positives.
+        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign for sign in self.argument_signs()]
+        return max(signs)
 
     # Always convex
     def signed_curvature(self):
@@ -197,12 +202,13 @@ class Max(Atom):
 
 class Min(Atom):
     """ Minimum argument. """
-    # Negative if any arg negative.
-    # Zero if no args negative and any arg zero.
+    # Negative if any arg negative or zero.
     # Unknown if at least one arg unknown and all others positive.
     # Positive if all args positive.
     def sign(self):
-        return min(*self.argument_signs())
+        # Replace all zeros with positives.
+        signs = [Sign.NEGATIVE if sign == Sign.ZERO else sign for sign in self.argument_signs()]
+        return min(signs)
 
     # Always convex
     def signed_curvature(self):
@@ -331,7 +337,7 @@ class Norm(Atom, Parameterized):
         if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or 
             self.parameter == 'Inf'):
             raise Exception(
-                "Invalid value '%s' for p in norm(...,p)." % self.parameter
+                "Invalid value '%s' for p in norm(..., p)." % self.parameter
                 )
 
     # Positive unless all arguments are zero.
@@ -568,7 +574,7 @@ class Pow(Atom, Parameterized):
     def validate_parameter(self):
         if not isinstance(self.parameter, Number):
             raise Exception(
-                "Invalid value '%s' for p in pow(...,p)." % self.parameter
+                "Invalid value '%s' for p in pow(..., p)." % self.parameter
                 )
 
     # Depends on p and the sign of x
@@ -609,7 +615,7 @@ class Pow_abs(Pow, Parameterized):
     # Raises error if the parameter is not a number >= 1.
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter >= 1):
-            raise Exception('Must have p >= 1 for pow_abs(...,p), but have p = %s.' % self.parameter)
+            raise Exception('Must have p >= 1 for pow_abs(..., p), but have p = %s.' % self.parameter)
 
 class Pow_pos(Pow, Parameterized):
     """ max{x,0}^p """
@@ -623,7 +629,7 @@ class Pow_pos(Pow, Parameterized):
     # Raises error if the parameter is not a number >= 1.
     def validate_parameter(self):
         if not (isinstance(self.parameter, Number) and self.parameter >= 1):
-            raise Exception('Must have p >= 1 for pow_pos(...,p), but have p = %s.' % self.parameter)
+            raise Exception('Must have p >= 1 for pow_pos(..., p), but have p = %s.' % self.parameter)
 
 
 class Square_abs(Pow_abs):
@@ -714,7 +720,7 @@ class Sum_square_abs(Sum_square):
         self.save_original_args(list(x))
 
 class Sum_square_pos(Sum_square):
-    """ max{x1,0}^2 + ... + max{xn,0}^2 = sum_square(pos(x1),...,pos(xn)) """
+    """ max{x1,0}^2 + ... + max{xn,0}^2 = sum_square(pos(x1),..., pos(xn)) """
     def __init__(self, *x):
         exp_vec = []
         for scalar in x:

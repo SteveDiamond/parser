@@ -135,7 +135,10 @@ class TestAtoms(object):
         assert_equals(Max(self.cvx_pos, self.cvx_neg).sign(), Sign.POSITIVE)
         assert_equals(Max(self.cvx_pos, self.cvx_neg).curvature(), Curvature.CONVEX)
 
-        assert_equals(Max(Constant(0), self.cvx_neg).sign(), Sign.ZERO)
+        assert_equals(Max(Constant(0)).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(0), self.cvx_neg).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(0), self.cvx_exp).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(0), self.cvx_exp, self.cvx_neg, self.cvx_pos).sign(), Sign.POSITIVE)
         assert_equals(Max(self.conc_exp).curvature(), Curvature.NONCONVEX)
 
         assert_equals(Max(Variable('a'), Constant(2)).sign(), Sign.POSITIVE)
@@ -154,7 +157,9 @@ class TestAtoms(object):
         assert_equals(Min(self.conc_pos, self.conc_neg).sign(), Sign.NEGATIVE)
         assert_equals(Min(self.conc_pos, self.conc_neg).curvature(), Curvature.CONCAVE)
 
-        assert_equals(Min(Constant(0), self.conc_pos).sign(), Sign.ZERO)
+        assert_equals(Min(Constant(0)).sign(), Sign.NEGATIVE)
+        assert_equals(Min(Constant(0), self.conc_pos).sign(), Sign.NEGATIVE)
+        assert_equals(Min(Constant(0), self.conc_exp).sign(), Sign.NEGATIVE)
         assert_equals(Min(self.cvx_exp).curvature(), Curvature.NONCONVEX)
 
         assert_equals(Min(Variable('a'), Constant(-2)).sign(), Sign.NEGATIVE)
@@ -220,14 +225,14 @@ class TestAtoms(object):
             Norm(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value '0' for p in norm(...,p).")
+            assert_equals(str(e), "Invalid value '0' for p in norm(..., p).")
 
         # Check error message
         try:
             Norm(Constant(-2), 'not inf')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value 'not inf' for p in norm(...,p).")
+            assert_equals(str(e), "Invalid value 'not inf' for p in norm(..., p).")
 
         # Check error message
         try:
@@ -382,7 +387,7 @@ class TestAtoms(object):
             Pow(Constant(-2), 'wrong')
             assert False
         except Exception, e:
-            assert_equals(str(e), "Invalid value 'wrong' for p in pow(...,p).")
+            assert_equals(str(e), "Invalid value 'wrong' for p in pow(..., p).")
 
     def test_pow_abs(self):
         assert_equals(Pow_abs(self.cvx_pos,2).curvature(), Curvature.CONVEX)
@@ -399,7 +404,7 @@ class TestAtoms(object):
             Pow_abs(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Must have p >= 1 for pow_abs(...,p), but have p = 0.')
+            assert_equals(str(e), 'Must have p >= 1 for pow_abs(..., p), but have p = 0.')
         
     def test_pow_pos(self):
         assert_equals(Pow_pos(self.cvx_pos,2).curvature(), Curvature.CONVEX)
@@ -415,7 +420,7 @@ class TestAtoms(object):
             Pow_pos(Constant(-2), 0)
             assert False
         except Exception, e:
-            assert_equals(str(e), 'Must have p >= 1 for pow_pos(...,p), but have p = 0.')
+            assert_equals(str(e), 'Must have p >= 1 for pow_pos(..., p), but have p = 0.')
 
     def test_square_abs(self):
         assert_equals(Square_abs(self.cvx_pos).curvature(), Curvature.CONVEX)
