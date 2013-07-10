@@ -46,7 +46,8 @@ class Parser(object):
 
         tokens = [
             'INT','FLOAT',
-            'PLUS','MINUS','TIMES','DIVIDE','EQUALS','GEQ','LEQ',
+            'PLUS','MINUS','TIMES','DIVIDE',
+            'EQUALS','SINGLE_EQUALS','GEQ','LEQ',
             'LPAREN','RPAREN','COMMA',
             'ID'] + list(set(reserved.values()))
 
@@ -55,6 +56,7 @@ class Parser(object):
         t_MINUS   = r'-'
         t_TIMES   = r'\*'
         t_DIVIDE  = r'/'
+        t_SINGLE_EQUALS = r'='
         t_EQUALS  = r'=='
         t_LEQ     = r'<='
         t_GEQ     = r'>='
@@ -98,7 +100,7 @@ class Parser(object):
 
         # Parser definition
         precedence = (
-            ('nonassoc', 'EQUALS', 'LEQ', 'GEQ'),
+            ('nonassoc', 'EQUALS', 'SINGLE_EQUALS', 'LEQ', 'GEQ'),
             ('left','PLUS','MINUS'),
             ('left','TIMES','DIVIDE'),
             ('right','UMINUS', 'UPLUS'),
@@ -158,13 +160,14 @@ class Parser(object):
                           | expression TIMES expression
                           | expression DIVIDE expression
                           | expression EQUALS expression
+                          | expression SINGLE_EQUALS expression
                           | expression LEQ expression
                           | expression GEQ expression'''
             if t[2] == '+'  : t[0] = t[1] + t[3]
             elif t[2] == '-': t[0] = t[1] - t[3]
             elif t[2] == '*': t[0] = t[1] * t[3]
             elif t[2] == '/': t[0] = t[1] / t[3]
-            elif t[2] == '==': t[0] = t[1] == t[3]
+            elif t[2] == '==' or t[2] == '=': t[0] = t[1].__eq__(t[3])
             elif t[2] == '<=': t[0] = t[1].__le__(t[3])
             elif t[2] == '>=': t[0] = t[1].__ge__(t[3])
 

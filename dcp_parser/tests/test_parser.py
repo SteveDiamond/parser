@@ -140,6 +140,22 @@ class TestParser(object):
           assert_equals(len(result.subexpressions), 2)
           assert_equals(len(result.errors), 0)
 
+          expression = 'a * x + b == 2'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals(expression, str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 0)
+
+          expression = 'a * x = y + b'
+          self.parser.parse(expression)
+          last = len(self.parser.statements) - 1
+          result = self.parser.statements[last]
+          assert_equals('a * x == y + b', str(result))
+          assert_equals(len(result.subexpressions), 2)
+          assert_equals(len(result.errors), 0)
+
           expression = 'max(x, y) == (y + square(b))'
           self.parser.parse(expression)
           last = len(self.parser.statements) - 1
