@@ -8,16 +8,13 @@ from dcp_parser.error_messages.dcp_violation_factory import DCPViolationFactory
 # based on the class sign and curvature.
 def make_atomic_func(atomic_class):
     def atomic_func(*args):
-        # Check that args is not empty
-        if len(args) == 0:
-            raise Exception('%s requires at least one argument.' % func_name)
-
         instance = atomic_class(*args)
         func_name = instance.name()
-        
-        name = func_name + "(" + str(args[0])
-        for i in range(1,len(args)):
-            name += ", " + str(args[i])
+        name = func_name + "("
+        for i in range(len(args)):
+            name += str(args[i])
+            if i < len(args)-1: 
+                name += ", " 
         name += ")"
 
         errors = DCPViolationFactory.composition_error(instance.signed_curvature(), 

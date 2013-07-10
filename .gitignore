@@ -1,3 +1,4 @@
 .DS_STORE
 *.pyc
 dcp_parser/parsetab.py
+dcp_parser/parser.out

@@ -9,6 +9,57 @@ class TestParser(object):
       def setup(self):
           self.parser = Parser()
 
+      def test_parser_errors(self):
+          self.parser.parse('variable x y z')
+          self.parser.parse('parameter positive a b')
+
+          try:
+               self.parser.parse('a * x = y + b')
+               assert False
+          except Exception, e:
+                assert_equals(str(e), "'=' is not valid. Did you mean '=='?")
+
+          try:
+               self.parser.parse('x^2')
+               assert False
+          except Exception, e:
+                assert_equals(str(e), "'^' is not valid. Consider using the 'pow' function.")
+
+          try:
+               self.parser.parse('.')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Illegal character '.'.")
+
+          try:
+               self.parser.parse('1 + sum(x,y) + max(1,,)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Missing argument in call to 'max'.")
+
+          try:
+               self.parser.parse('none')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "'none' is not a known variable or parameter.")
+          try:
+               self.parser.parse('max()')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "No arguments given to 'max'.")
+
+          try:
+               self.parser.parse('max(x,y')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Missing closed parenthesis or other invalid syntax.")
+
+          try:
+               self.parser.parse('none(x)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "'none' is not a known atom.")
+
       def test_parse_variables(self):
           exp = 'variable x'
           self.parser.parse(exp)
@@ -131,12 +182,6 @@ class TestParser(object):
       def test_constraints_eval(self):
           self.parser.parse('variable x y')
           self.parser.parse('parameter positive a b')
-          
-          expression = 'a * x = y + b'
-          try:
-               self.parser.parse(expression)
-          except Exception, e:
-                assert_equals(str(e), "Did you mean '=='?")
 
           expression = 'a * x == y + b'
           self.parser.parse(expression)

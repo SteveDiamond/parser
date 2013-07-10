@@ -126,7 +126,7 @@ class TestAtoms(object):
             Log_sum_exp()
             assert False
         except Exception, e:
-            assert_equals(str(e), 'No arguments given to log_sum_exp.')
+            assert_equals(str(e), "No arguments given to 'log_sum_exp'.")
 
         assert_equals(len(Log_sum_exp(self.conc_exp, self.cvx_exp).arguments()), 2)
         assert_not_equals(Log_sum_exp(self.conc_exp, self.cvx_exp).arguments()[0].name, Atom.GENERATED_EXPRESSION)
@@ -239,7 +239,7 @@ class TestAtoms(object):
             Norm()
             assert False
         except Exception, e:
-            assert_equals(str(e), 'No arguments given to norm.')
+            assert_equals(str(e), "No arguments given to 'norm'.")
 
     def test_abs(self):
         assert_equals(Abs(self.aff_exp).curvature(), Curvature.CONVEX)

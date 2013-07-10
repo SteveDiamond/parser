@@ -91,9 +91,11 @@ class Parser(object):
             
         def t_error(t):
             if t.value[0] == '=':
-                raise Exception("Did you mean '=='?")
-            print("Illegal character '%s'" % t.value[0])
-            t.lexer.skip(1)
+                raise Exception("'=' is not valid. Did you mean '=='?")
+            elif t.value[0] == '^':
+                raise Exception("'^' is not valid. Consider using the 'pow' function.")
+            else:
+                raise Exception("Illegal character '%s'." % t.value[0])
             
         # Build the lexer
         import ply.lex as lex
@@ -151,7 +153,7 @@ class Parser(object):
 
         # Evaluate an expression.
         def p_statement_expr(t):
-            'statement : expression'
+            '''statement : expression'''
             self.statements.append(t[1])
 
         # Binary arithmetic and boolean operators.
@@ -182,17 +184,41 @@ class Parser(object):
             except TypeError:
                 raise Exception("Incorrect number of arguments passed to '%s'." % t[1])
 
+        # Error for atomic function with no arguments.
+        def p_expression_atom_no_args(t):
+            'expression : ID LPAREN RPAREN'
+            raise Exception("No arguments given to '%s'." % t[1])
+
+        # Error for missing argument in atomic function.
+        def p_expression_atom_missing_arg(t):
+            'expression : ID LPAREN expression_list_missing_arg RPAREN'
+            raise Exception("Missing argument in call to '%s'." % t[1])
+
+        # Catch all error for atomic function.
+        def p_expression_atom_error(t):
+            'expression : ID LPAREN error RPAREN'
+            raise Exception("Syntax error in the arguments for '%s'." % t[1])
+
         # List of expressions.
-        def p_expression_list(t):
+        # Single expression or STRING_ARG.
+        def p_expression_list_single(t):
             '''expression_list : expression
-                               | STRING_ARG
-                               | expression_list COMMA expression 
+                               | STRING_ARG'''
+            t[0] = [t[1]]
+
+        # Concatenated expressions or STRING_ARGs.
+        def p_expression_list_multi(t):
+            '''expression_list : expression_list COMMA expression 
                                | expression_list COMMA STRING_ARG'''
-            if len(t) == 2: # Single expression or STRING_ARG.
-                t[0] = [t[1]]
-            else: # Concatenated expressions or STRING_ARGs.
-                t[1].append(t[3])
-                t[0] = t[1]
+            t[1].append(t[3])
+            t[0] = t[1]
+
+        def p_expression_list_missing_arg(t):
+            '''expression_list_missing_arg : COMMA 
+                                           | expression_list COMMA COMMA
+                                           | expression_list_missing_arg COMMA expression
+                                           | expression_list_missing_arg COMMA STRING_ARG'''
+
 
         # Unary plus and minus.
         def p_expression_uplus(t):
@@ -224,7 +250,7 @@ class Parser(object):
                 raise Exception("'%s' is not a known variable or parameter." % t[1])
 
         def p_error(t):
-            raise Exception("Invalid syntax.")
+            raise Exception("Missing closed parenthesis or other invalid syntax.")
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")
