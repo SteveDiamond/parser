@@ -132,6 +132,12 @@ class TestParser(object):
           self.parser.parse('variable x y')
           self.parser.parse('parameter positive a b')
           
+          expression = 'a * x = y + b'
+          try:
+               self.parser.parse(expression)
+          except Exception, e:
+                assert_equals(str(e), "Did you mean '=='?")
+
           expression = 'a * x == y + b'
           self.parser.parse(expression)
           last = len(self.parser.statements) - 1

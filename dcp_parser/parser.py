@@ -90,6 +90,8 @@ class Parser(object):
             t.lexer.lineno += t.value.count("\n")
             
         def t_error(t):
+            if t.value[0] == '=':
+                raise Exception("Did you mean '=='?")
             print("Illegal character '%s'" % t.value[0])
             t.lexer.skip(1)
             
