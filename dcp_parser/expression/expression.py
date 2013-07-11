@@ -51,7 +51,7 @@ class Expression(Statement):
         elif isinstance(expression, Expression):
             return expression
         else:
-            raise Exception("Illegal operation on object %s. Object must be of "
+            raise TypeError("Illegal operation on object %s. Object must be of "
                             "type number or Expression, but is type %s."
                             % (str(expression), expression.__class__.__name__))
     

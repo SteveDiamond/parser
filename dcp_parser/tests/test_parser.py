@@ -48,11 +48,17 @@ class TestParser(object):
           except Exception, e:
                assert_equals(str(e), "Missing arguments in 'max()'.")
 
+          try:
+               self.parser.parse('max(1 1)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Syntax error in call to 'max'.")
+
           # try:
-          #      self.parser.parse('max(x,y')
+          #      self.parser.parse('max(1) 1')
           #      assert False
           # except Exception, e:
-          #      assert_equals(str(e), "Missing ')' or other invalid syntax.")
+          #      assert_equals(str(e), "Syntax error in the expression.")
 
           try:
                self.parser.parse('none(x)')
@@ -65,19 +71,50 @@ class TestParser(object):
                self.parser.parse('1 + sum(x,y) + max(1,++)')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Unexpected '+'.")
+               assert_equals(str(e), "Syntax error in call to 'max'.")
+
+
+          try:
+               self.parser.parse('-')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "'-' is not a valid expression.")
 
           try:
                self.parser.parse('1--')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Unexpected '-'.")
+               assert_equals(str(e), "'1--' is not a valid expression.")
 
           try:
                self.parser.parse('1<= ==')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Unexpected '=='.")
+               assert_equals(str(e), "Syntax error following '1'.")
+
+          try:
+               self.parser.parse('1 + >= max(1)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Syntax error following '1'.")
+
+          try:
+               self.parser.parse('1 == 1 == 1')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "An expression can only contain one constraint.")
+
+          try:
+               self.parser.parse('1 + 1 -2 <= 3*5 - x + max(x) <= 2')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "An expression can only contain one constraint.")
+
+          try:
+               self.parser.parse('1 + (1 == 1)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Syntax error following '1'.")
 
       def test_parse_variables(self):
           exp = 'variable x'

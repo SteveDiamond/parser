@@ -24,7 +24,14 @@ class Parser(object):
 
     # Evaluates statement and records the meaning.
     def parse(self, statement):
-        self.parser.parse(statement)
+        self.errors = 0
+        lines = statement.split('\n')
+        for line in lines:
+            # Ignore empty input.
+            if len(line.strip()) > 0:
+                self.parser.parse(line)
+            if self.errors > 0:
+                raise Exception("'%s' is not a valid expression." % line)
 
     """
     Constructs at lex/yacc parser for convex optimization expressions.
@@ -109,35 +116,35 @@ class Parser(object):
             ('right','UMINUS', 'UPLUS'),
             )
 
-        # Handle empty input
-        def p_statement_empty(t):
-            'statement : '
-
         # Add variables to the symbol table.
-        # Variable sign is optional.
+        # No sign given, defaults to UNKNOWN
         def p_statement_variables(t):
-            '''statement : VARIABLE SIGN id_list
-                         | VARIABLE id_list
-            '''
-            sign = Sign.UNKNOWN
-            if len(t) == 4: # With sign
-                sign = Sign(t[2])
-            variables = t[len(t)-1]
-            # Add the variables to the symbol table
+            '''statement : VARIABLE id_list'''
+            add_variables(t[2], Sign.UNKNOWN)
+
+        # Sign given
+        def p_statement_variables_sign(t):
+            '''statement : VARIABLE SIGN id_list'''
+            add_variables(t[3], Sign(t[2]))
+
+        # Helper to add variables to the symbol table.
+        def add_variables(variables, sign):
             for id in variables:
                 self.symbol_table[id] = Variable(id, sign)
 
         # Add parameters to the symbol table.
-        # Parameter sign is optional.
+        # No sign given, defaults to UNKNOWN
         def p_statement_parameters(t):
-            '''statement : PARAMETER SIGN id_list
-                         | PARAMETER id_list
-            '''
-            sign = Sign.UNKNOWN
-            if len(t) == 4: # With sign
-                sign = Sign(t[2])
-            parameters = t[len(t)-1]
-            # Add the parameters to the symbol table
+            '''statement : PARAMETER id_list'''
+            add_parameters(t[2], Sign.UNKNOWN)
+
+        # Sign given
+        def p_statement_parameters_sign(t):
+            '''statement : PARAMETER SIGN id_list'''
+            add_parameters(t[3], Sign(t[2]))
+
+        # Helper to add parameters to the symbol table.
+        def add_parameters(parameters, sign):
             for id in parameters:
                 self.symbol_table[id] = Parameter(id, sign)
 
@@ -153,36 +160,41 @@ class Parser(object):
 
         # Evaluate an expression.
         def p_statement_expr(t):
-            '''statement : expression'''
+            '''statement : expression
+                         | constraint'''
             self.statements.append(t[1])
 
+        # Top level error catching.
+        def p_statement_error(t):
+            '''statement : expression error
+                         | constraint error'''
+            raise Exception("Syntax error following '%s'." % str(t[1]))
+
         # Binary arithmetic and boolean operators.
-        def p_expression_binop(t):
+        def p_expression_arith_binop(t):
             '''expression : expression PLUS expression
                           | expression MINUS expression
                           | expression TIMES expression
-                          | expression DIVIDE expression
-                          | expression EQUALS expression
-                          | expression LEQ expression
-                          | expression GEQ expression'''
-            if t[2] == '+'  : t[0] = t[1] + t[3]
+                          | expression DIVIDE expression'''
+            if t[2]   == '+': t[0] = t[1] + t[3]
             elif t[2] == '-': t[0] = t[1] - t[3]
             elif t[2] == '*': t[0] = t[1] * t[3]
             elif t[2] == '/': t[0] = t[1] / t[3]
-            elif t[2] == '==': t[0] = t[1].__eq__(t[3])
+
+        def p_expression_bool_binop(t):
+            '''constraint : expression EQUALS expression
+                          | expression LEQ expression
+                          | expression GEQ expression'''
+            if t[2]   == '==': t[0] = t[1].__eq__(t[3])
             elif t[2] == '<=': t[0] = t[1].__le__(t[3])
             elif t[2] == '>=': t[0] = t[1].__ge__(t[3])
 
-        # Error production for arithmetic operators missing arguments.
-        def p_expression_binop_error(t):
-            '''expression : PLUS
-                          | MINUS
-                          | TIMES
-                          | DIVIDE
-                          | EQUALS
-                          | LEQ
-                          | GEQ'''
-            raise Exception("Unexpected '%s'." % t[1])
+        # Raise error for multiple constraints.
+        def p_expression_bool_binop_errors(t):
+            '''constraint : constraint EQUALS expression
+                          | constraint LEQ expression
+                          | constraint GEQ expression'''
+            raise Exception("An expression can only contain one constraint.")
 
         # Utility function to convert an atom and expression list to a string.
         # Returns the function call as a string and whether there are missing
@@ -209,10 +221,8 @@ class Parser(object):
 
         # Catch all error for atomic function.
         def p_expression_atom_error(t):
-            'expression : ID LPAREN error RPAREN'
-            print t[3]
-            atom_str = get_atom_string(t[1], [t[3]])
-            raise Exception("Syntax error in '%s'." % atom_str)
+            '''expression : ID LPAREN error RPAREN'''
+            raise Exception("Syntax error in call to '%s'." % t[1])
 
         # List of expressions.
         # Single expression or STRING_ARG.
@@ -263,9 +273,9 @@ class Parser(object):
             except LookupError:
                 raise Exception("'%s' is not a known variable or parameter." % t[1])
 
+
         def p_error(t):
-            raise Exception(ply.yacc.token())
-            raise Exception("Missing ')' or other invalid syntax.")
+            self.errors += 1
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")
