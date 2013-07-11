@@ -173,52 +173,66 @@ class Parser(object):
             elif t[2] == '<=': t[0] = t[1].__le__(t[3])
             elif t[2] == '>=': t[0] = t[1].__ge__(t[3])
 
+        # Error production for arithmetic operators missing arguments.
+        def p_expression_binop_error(t):
+            '''expression : PLUS
+                          | MINUS
+                          | TIMES
+                          | DIVIDE
+                          | EQUALS
+                          | LEQ
+                          | GEQ'''
+            raise Exception("Unexpected '%s'." % t[1])
+
+        # Utility function to convert an atom and expression list to a string.
+        # Returns the function call as a string and whether there are missing
+        # arguments.
+        def get_atom_string(atom, expression_list):
+            args = [str(arg) for arg in expression_list]
+            missing_args = '' in args
+            return (atom + "(" + ", ".join(args) + ")", missing_args)
+
         # Atomic function.
         def p_expression_atom(t):
             'expression : ID LPAREN expression_list RPAREN'
             if not t[1] in self.atom_dict:
-                raise Exception("'%s' is not a known atom." % t[1])
+                raise Exception("'%s' is not a known function." % t[1])
             atom = self.atom_dict[t[1]]
+            # Check if missing arguments.
+            (atom_str, missing_args) = get_atom_string(t[1], t[3])
+            if missing_args:
+                raise Exception("Missing arguments in '%s'." % atom_str)
             try:
                 t[0] = atom(*t[3])
             except TypeError:
-                raise Exception("Incorrect number of arguments passed to '%s'." % t[1])
-
-        # Error for atomic function with no arguments.
-        def p_expression_atom_no_args(t):
-            'expression : ID LPAREN RPAREN'
-            raise Exception("No arguments given to '%s'." % t[1])
-
-        # Error for missing argument in atomic function.
-        def p_expression_atom_missing_arg(t):
-            'expression : ID LPAREN expression_list_missing_arg RPAREN'
-            raise Exception("Missing argument in call to '%s'." % t[1])
+                raise Exception("Incorrect number of arguments in '%s'." % atom_str)
 
         # Catch all error for atomic function.
         def p_expression_atom_error(t):
             'expression : ID LPAREN error RPAREN'
-            raise Exception("Syntax error in the arguments for '%s'." % t[1])
+            print t[3]
+            atom_str = get_atom_string(t[1], [t[3]])
+            raise Exception("Syntax error in '%s'." % atom_str)
 
         # List of expressions.
         # Single expression or STRING_ARG.
         def p_expression_list_single(t):
-            '''expression_list : expression
+            '''expression_list : expression_or_empty
                                | STRING_ARG'''
             t[0] = [t[1]]
 
         # Concatenated expressions or STRING_ARGs.
         def p_expression_list_multi(t):
-            '''expression_list : expression_list COMMA expression 
+            '''expression_list : expression_list COMMA expression_or_empty
                                | expression_list COMMA STRING_ARG'''
             t[1].append(t[3])
             t[0] = t[1]
 
-        def p_expression_list_missing_arg(t):
-            '''expression_list_missing_arg : COMMA 
-                                           | expression_list COMMA COMMA
-                                           | expression_list_missing_arg COMMA expression
-                                           | expression_list_missing_arg COMMA STRING_ARG'''
-
+        # Error productions for expression lists with missing arguments.
+        def p_expression_or_empty(t):
+            '''expression_or_empty :
+                                   | expression '''
+            t[0] = '' if len(t) == 1 else t[1]
 
         # Unary plus and minus.
         def p_expression_uplus(t):
@@ -250,7 +264,8 @@ class Parser(object):
                 raise Exception("'%s' is not a known variable or parameter." % t[1])
 
         def p_error(t):
-            raise Exception("Missing closed parenthesis or other invalid syntax.")
+            raise Exception(ply.yacc.token())
+            raise Exception("Missing ')' or other invalid syntax.")
 
         # Build the parser, tabmodule set so it loads parsetab.py
         return ply.yacc.yacc(tabmodule="dcp_parser.parsetab")

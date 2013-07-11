@@ -35,7 +35,7 @@ class TestParser(object):
                self.parser.parse('1 + sum(x,y) + max(1,,)')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Missing argument in call to 'max'.")
+               assert_equals(str(e), "Missing arguments in 'max(1, , )'.")
 
           try:
                self.parser.parse('none')
@@ -46,19 +46,38 @@ class TestParser(object):
                self.parser.parse('max()')
                assert False
           except Exception, e:
-               assert_equals(str(e), "No arguments given to 'max'.")
+               assert_equals(str(e), "Missing arguments in 'max()'.")
 
-          try:
-               self.parser.parse('max(x,y')
-               assert False
-          except Exception, e:
-               assert_equals(str(e), "Missing closed parenthesis or other invalid syntax.")
+          # try:
+          #      self.parser.parse('max(x,y')
+          #      assert False
+          # except Exception, e:
+          #      assert_equals(str(e), "Missing ')' or other invalid syntax.")
 
           try:
                self.parser.parse('none(x)')
                assert False
           except Exception, e:
-               assert_equals(str(e), "'none' is not a known atom.")
+               assert_equals(str(e), "'none' is not a known function.")
+
+          # Arithmetic expression errors.
+          try:
+               self.parser.parse('1 + sum(x,y) + max(1,++)')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Unexpected '+'.")
+
+          try:
+               self.parser.parse('1--')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Unexpected '-'.")
+
+          try:
+               self.parser.parse('1<= ==')
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "Unexpected '=='.")
 
       def test_parse_variables(self):
           exp = 'variable x'

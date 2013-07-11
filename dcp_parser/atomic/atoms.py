@@ -30,7 +30,7 @@ class Atom(object):
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
-            raise Exception("No arguments given to '%s'." % self.name())
+            raise TypeError("No arguments given to '%s'." % self.name())
         # Convert numeric constants to Constants
         self.args = map(Expression.type_check, list(args))
         # Arguments passed into the Atom. Defaults to self.args,
