@@ -189,7 +189,8 @@ class Max(Atom):
     # Negative if all arguments negative.
     def sign(self):
         # Replace all zeros with positives.
-        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign for sign in self.argument_signs()]
+        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign 
+                 for sign in self.argument_signs()]
         return max(signs)
 
     # Always convex
@@ -206,8 +207,9 @@ class Min(Atom):
     # Unknown if at least one arg unknown and all others positive.
     # Positive if all args positive.
     def sign(self):
-        # Replace all zeros with positives.
-        signs = [Sign.NEGATIVE if sign == Sign.ZERO else sign for sign in self.argument_signs()]
+        # Replace all zeros with negatives.
+        signs = [Sign.NEGATIVE if sign == Sign.ZERO else sign
+                 for sign in self.argument_signs()]
         return min(signs)
 
     # Always convex
@@ -262,12 +264,14 @@ class Geo_mean(Atom):
     def __init__(self, *args):
         super(Geo_mean, self).__init__(*args)
 
-    # Positive unless one of the arguments is negative.
+    # Positive if all args positive or zero.
+    # Unknown if any arg unknown.
+    # Negative if any argument negative.
     def sign(self):
-        for sign in self.argument_signs():
-            if sign == Sign.NEGATIVE:
-                return Sign.NEGATIVE
-        return Sign.POSITIVE
+        # Replace all zeros with positives.
+        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign 
+                 for sign in self.argument_signs()]
+        return min(signs)
 
     # Always concave
     def signed_curvature(self):

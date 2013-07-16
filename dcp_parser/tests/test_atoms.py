@@ -178,7 +178,8 @@ class TestAtoms(object):
 
     def test_geo_mean(self):
         assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).curvature(), Curvature.CONCAVE)
-        assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).sign(), Sign.POSITIVE)
+        assert_equals(Geo_mean(self.conc_exp, self.aff_exp, Constant(2)).sign(), Sign.UNKNOWN)
+        assert_equals(Geo_mean(self.conc_pos, Constant(2)).sign(), Sign.POSITIVE)
         assert_equals(Geo_mean(self.conc_exp, self.aff_exp, self.cvx_exp).curvature(), Curvature.NONCONVEX)
         assert_equals(Geo_mean(Constant(-2)).sign(), Sign.NEGATIVE)
 
@@ -187,7 +188,8 @@ class TestAtoms(object):
 
     def test_sqrt(self):
         assert_equals(Sqrt(self.conc_exp).curvature(), Curvature.CONCAVE)
-        assert_equals(Sqrt(self.aff_exp).sign(), Sign.POSITIVE)
+        assert_equals(Sqrt(self.conc_pos).sign(), Sign.POSITIVE)
+        assert_equals(Sqrt(self.aff_exp).sign(), Sign.UNKNOWN)
         assert_equals(Sqrt(self.cvx_exp).curvature(), Curvature.NONCONVEX)
         assert_equals(Sqrt(Constant(-2)).sign(), Sign.NEGATIVE)
 

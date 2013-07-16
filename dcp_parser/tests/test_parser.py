@@ -54,12 +54,6 @@ class TestParser(object):
           except Exception, e:
                assert_equals(str(e), "Syntax error in call to 'max'.")
 
-          # try:
-          #      self.parser.parse('max(1) 1')
-          #      assert False
-          # except Exception, e:
-          #      assert_equals(str(e), "Syntax error in the expression.")
-
           try:
                self.parser.parse('none(x)')
                assert False
