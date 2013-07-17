@@ -168,7 +168,7 @@ class Parser(object):
         def p_statement_error(t):
             '''statement : expression error
                          | constraint error'''
-            raise Exception("Syntax error following '%s'." % str(t[1]))
+            raise Exception("Invalid syntax after '%s'." % str(t[1]))
 
         # Binary arithmetic and boolean operators.
         def p_expression_arith_binop(t):

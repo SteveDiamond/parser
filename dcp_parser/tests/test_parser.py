@@ -84,13 +84,13 @@ class TestParser(object):
                self.parser.parse('1<= ==')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Syntax error following '1'.")
+               assert_equals(str(e), "Invalid syntax after '1'.")
 
           try:
                self.parser.parse('1 + >= max(1)')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Syntax error following '1'.")
+               assert_equals(str(e), "Invalid syntax after '1'.")
 
           try:
                self.parser.parse('1 == 1 == 1')
@@ -108,7 +108,7 @@ class TestParser(object):
                self.parser.parse('1 + (1 == 1)')
                assert False
           except Exception, e:
-               assert_equals(str(e), "Syntax error following '1'.")
+               assert_equals(str(e), "Invalid syntax after '1'.")
 
       def test_parse_variables(self):
           exp = 'variable x'

@@ -538,28 +538,11 @@ class Norm_largest(Atom, Parameterized):
             monotonicities.append(monotonicity)
         return monotonicities
 
-class Pos(Atom):
+class Pos(Max):
     """ max{x,0} """
     def __init__(self, x):
-        super(Pos, self).__init__(x)
-
-    # Positive unless x negative or zero, in which case zero.
-    def sign(self):
-        if self.args[0].sign <= Sign.ZERO:
-            return Sign.ZERO
-        else:
-            return Sign.POSITIVE
-
-    # Convex unless zero, in which case constant.
-    def signed_curvature(self):
-        if self.sign() <= Sign.ZERO:
-            return Curvature.CONSTANT
-        else:
-            return Curvature.CONVEX
-
-    # Always increasing.
-    def monotonicity(self):
-        return [Monotonicity.INCREASING]
+        super(Pos, self).__init__(x, 0)
+        self.save_original_args([x])
 
 class Pow(Atom, Parameterized):
     """ 

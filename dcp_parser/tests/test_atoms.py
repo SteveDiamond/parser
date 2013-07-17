@@ -357,7 +357,7 @@ class TestAtoms(object):
 
     def test_pos(self):
         assert_equals(Pos(self.conc_exp).curvature(), Curvature.NONCONVEX)
-        assert_equals(Pos(self.conc_neg).curvature(), Curvature.CONSTANT)
+        assert_equals(Pos(self.conc_neg).curvature(), Curvature.NONCONVEX)
         assert_equals(Pos(self.cvx_exp).curvature(), Curvature.CONVEX)
         assert_equals(Pos(self.cvx_pos).sign(), Sign.POSITIVE)
 
@@ -410,7 +410,7 @@ class TestAtoms(object):
         
     def test_pow_pos(self):
         assert_equals(Pow_pos(self.cvx_pos,2).curvature(), Curvature.CONVEX)
-        assert_equals(Pow_pos(self.conc_neg,2).curvature(), Curvature.CONSTANT)
+        assert_equals(Pow_pos(self.conc_neg,2).curvature(), Curvature.NONCONVEX)
         assert_equals(Pow_pos(self.conc_pos,2).curvature(), Curvature.NONCONVEX)
         assert_equals(Pow_pos(self.noncvx_exp, 2).sign(), Sign.POSITIVE)
 
@@ -435,7 +435,7 @@ class TestAtoms(object):
 
     def test_square_pos(self):
         assert_equals(Square_pos(self.cvx_exp).curvature(), Curvature.CONVEX)
-        assert_equals(Square_pos(self.conc_neg).curvature(), Curvature.CONSTANT)
+        assert_equals(Square_pos(self.conc_neg).curvature(), Curvature.NONCONVEX)
         assert_equals(Square_pos(self.conc_pos).curvature(), Curvature.NONCONVEX)
         assert_equals(Square_pos(self.noncvx_exp).sign(), Sign.POSITIVE)
 
@@ -490,10 +490,10 @@ class TestAtoms(object):
         assert_not_equals(Sum_square_abs(self.cvx_pos, self.aff_exp, self.conc_neg).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
     def test_sum_square_pos(self):
-        assert_equals(Sum_square_pos(self.cvx_pos, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
-        assert_equals(Sum_square_pos(self.cvx_neg, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
-        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).curvature(), Curvature.CONSTANT)
-        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).sign(), Sign.ZERO)
+        assert_equals(Sum_square_pos(self.cvx_pos, self.aff_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square_pos(self.cvx_neg, self.aff_exp).curvature(), Curvature.CONVEX)
+        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).curvature(), Curvature.NONCONVEX)
+        assert_equals(Sum_square_pos(self.conc_neg, self.cvx_neg).sign(), Sign.POSITIVE)
         assert_equals(Sum_square_pos(self.noncvx_exp, self.cvx_pos).curvature(), Curvature.NONCONVEX)
         assert_equals(Sum_square_pos(self.noncvx_exp, self.cvx_pos).sign(), Sign.POSITIVE)
 
