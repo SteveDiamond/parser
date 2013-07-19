@@ -26,7 +26,7 @@ class Atom(object):
                             str(Sign.UNKNOWN): Monotonicity.NONMONOTONIC
                             }
 
-    # args is the expressions passed into the Atom constructor.
+    # args are the expressions passed into the Atom constructor.
     def __init__(self, *args):
         # Throws error if args is empty.
         if len(args) == 0:
@@ -122,15 +122,11 @@ class Atom(object):
     """
     @staticmethod
     def dcp_curvature(curvature, args, monotonicities):
-        if len(args) == 0 or len(args) != len(monotonicities):
-            raise Exception('The number of args must be non-zero and'
+        if len(args) != len(monotonicities):
+            raise Exception('The number of args be'
                             ' equal to the number of monotonicities.')
-        arg_curvatures = []
-        for i in range(len(args)):
-            monotonicity = monotonicities[i]
-            arg = args[i]
-            arg_curvatures.append(monotonicity.dcp_curvature(curvature, arg.curvature))
-
+        arg_curvatures = [monotonicity.dcp_curvature(curvature,arg.curvature)
+                          for arg,monotonicity in zip(args,monotonicities)]
         return Curvature.sum(arg_curvatures)
 
 class Parameterized(object):
