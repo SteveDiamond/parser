@@ -63,4 +63,3 @@ class TestCurvature(object):
         assert not Curvature.CONVEX.is_concave()
         assert Curvature.CONCAVE.is_concave()
         assert not Curvature.NONCONVEX.is_concave()
-        

@@ -72,23 +72,20 @@ class Atom(object):
 
     # Returns argument curvatures as a list.
     def argument_curvatures(self):
-        curvatures = []
-        for arg in self.args:
-            curvatures.append(arg.curvature)
-        return curvatures
+        return [arg.curvature for arg in self.args]
 
     # Returns argument signs as a list.
     def argument_signs(self):
-        signs = []
-        for arg in self.args:
-            signs.append(arg.sign)
-        return signs
+        return [arg.sign for arg in self.args]
 
     # Converts an Atom into an expression with the same curvature and sign.
     # Used for defining atoms as compositions of atoms.
     @staticmethod
     def atom_to_expression(instance):
-        return Expression(instance.curvature(), instance.sign(), Atom.GENERATED_EXPRESSION, instance.arguments())
+        return Expression(instance.curvature(), 
+                          instance.sign(), 
+                          Atom.GENERATED_EXPRESSION, 
+                          instance.arguments())
 
     # Converts a Constant or -Constant to its numeric value.
     # Returns given argument if cannot be converted.
