@@ -14,6 +14,18 @@ class TestParser(object):
           self.parser.parse('parameter positive a b')
 
           try:
+               self.parser.parse("x < 2")
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "'<' constraints are not valid. Consider using '<='.")
+
+          try:
+               self.parser.parse("x > 2")
+               assert False
+          except Exception, e:
+               assert_equals(str(e), "'>' constraints are not valid. Consider using '>='.")
+
+          try:
                self.parser.parse('a * x = y + b')
                assert False
           except Exception, e:

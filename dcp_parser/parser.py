@@ -99,6 +99,10 @@ class Parser(object):
         def t_error(t):
             if t.value[0] == '=':
                 raise Exception("'=' is not valid. Did you mean '=='?")
+            elif t.value[0] == '<':
+                raise Exception("'<' constraints are not valid. Consider using '<='.")
+            elif t.value[0] == '>':
+                raise Exception("'>' constraints are not valid. Consider using '>='.")
             elif t.value[0] == '^':
                 raise Exception("'^' is not valid. Consider using the 'pow' function.")
             else:
