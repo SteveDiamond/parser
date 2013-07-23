@@ -648,16 +648,10 @@ class Quad_over_lin(Atom):
         super(Quad_over_lin,self).__init__(x,y)
         self.x = self.args[0]
         self.y = self.args[1]
-        # Throws error if y is negative or zero.
-        if self.y.sign <= Sign.ZERO:
-            raise Exception('%s does not accept negative divisor arguments.' % self.name())
-
-    # Positive unless denominator is zero.
+    
+    # Always positive.
     def sign(self):
-        if self.x.sign == Sign.ZERO:
-            return Sign.ZERO
-        else:
-            return Sign.POSITIVE
+        return Sign.POSITIVE
 
     # Always convex
     def signed_curvature(self):

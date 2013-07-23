@@ -461,12 +461,8 @@ class TestAtoms(object):
         assert_equals(len(Quad_over_lin(self.noncvx_exp, self.conc_exp).arguments()), 2)
         assert_not_equals(Quad_over_lin(self.noncvx_exp, self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
-        # Check error message
-        try:
-            Quad_over_lin(self.cvx_pos, self.cvx_neg)
-            assert False
-        except Exception, e:
-            assert_equals(str(e), 'quad_over_lin does not accept negative divisor arguments.')
+        # Negative denominator
+        assert_equals(Quad_over_lin(self.cvx_pos, self.conc_neg).curvature(), Curvature.CONVEX)
 
     def test_sum_square(self):
         assert_equals(Sum_square(self.cvx_pos, self.aff_exp, self.conc_neg).curvature(), Curvature.CONVEX)
