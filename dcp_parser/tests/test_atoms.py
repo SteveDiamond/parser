@@ -135,8 +135,8 @@ class TestAtoms(object):
         assert_equals(Max(self.cvx_pos, self.cvx_neg).sign(), Sign.POSITIVE)
         assert_equals(Max(self.cvx_pos, self.cvx_neg).curvature(), Curvature.CONVEX)
 
-        assert_equals(Max(Constant(0)).sign(), Sign.POSITIVE)
-        assert_equals(Max(Constant(0), self.cvx_neg).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(0)).sign(), Sign.ZERO)
+        assert_equals(Max(Constant(0), self.cvx_neg).sign(), Sign.ZERO)
         assert_equals(Max(Constant(0), self.cvx_exp).sign(), Sign.POSITIVE)
         assert_equals(Max(Constant(0), self.cvx_exp, self.cvx_neg, self.cvx_pos).sign(), Sign.POSITIVE)
         assert_equals(Max(self.conc_exp).curvature(), Curvature.NONCONVEX)
@@ -145,6 +145,28 @@ class TestAtoms(object):
 
         assert_equals(len(Max(self.cvx_pos, self.cvx_neg).arguments()), 2)
         assert_not_equals(Max(self.cvx_pos, self.cvx_neg).arguments()[0].name, Atom.GENERATED_EXPRESSION)
+
+        # Exhaustive test of signs.
+        # One arg.
+        assert_equals(Max(Constant(1)).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(-2)).sign(), Sign.NEGATIVE)
+        assert_equals(Max(self.aff_exp).sign(), Sign.UNKNOWN)
+        assert_equals(Max(Constant(0)).sign(), Sign.ZERO)
+
+        # Two args.
+        assert_equals(Max(Constant(1), Constant(2)).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(1), self.aff_exp).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(1), Constant(-2)).sign(), Sign.POSITIVE)
+        assert_equals(Max(Constant(1), Constant(0)).sign(), Sign.POSITIVE)
+
+        assert_equals(Max(self.aff_exp, Constant(0)).sign(), Sign.POSITIVE)
+        assert_equals(Max(self.aff_exp, self.aff_exp).sign(), Sign.UNKNOWN)
+        assert_equals(Max(self.aff_exp, Constant(-2)).sign(), Sign.UNKNOWN)
+
+        assert_equals(Max(Constant(0), Constant(0)).sign(), Sign.ZERO)
+        assert_equals(Max(Constant(0), Constant(-2)).sign(), Sign.ZERO)
+
+        assert_equals(Max(Constant(-3), Constant(-2)).sign(), Sign.NEGATIVE)
 
     def test_log(self):
         assert_equals(Log(self.conc_exp).curvature(), Curvature.CONCAVE)
@@ -157,8 +179,8 @@ class TestAtoms(object):
         assert_equals(Min(self.conc_pos, self.conc_neg).sign(), Sign.NEGATIVE)
         assert_equals(Min(self.conc_pos, self.conc_neg).curvature(), Curvature.CONCAVE)
 
-        assert_equals(Min(Constant(0)).sign(), Sign.NEGATIVE)
-        assert_equals(Min(Constant(0), self.conc_pos).sign(), Sign.NEGATIVE)
+        assert_equals(Min(Constant(0)).sign(), Sign.ZERO)
+        assert_equals(Min(Constant(0), self.conc_pos).sign(), Sign.ZERO)
         assert_equals(Min(Constant(0), self.conc_exp).sign(), Sign.NEGATIVE)
         assert_equals(Min(self.cvx_exp).curvature(), Curvature.NONCONVEX)
 
@@ -166,6 +188,28 @@ class TestAtoms(object):
 
         assert_equals(len(Min(self.cvx_pos, self.cvx_neg).arguments()), 2)
         assert_not_equals(Min(self.cvx_pos, self.cvx_neg).arguments()[0].name, Atom.GENERATED_EXPRESSION)
+
+        # Exhaustive test of signs.
+        # One arg.
+        assert_equals(Min(Constant(1)).sign(), Sign.POSITIVE)
+        assert_equals(Min(Constant(-2)).sign(), Sign.NEGATIVE)
+        assert_equals(Min(self.aff_exp).sign(), Sign.UNKNOWN)
+        assert_equals(Min(Constant(0)).sign(), Sign.ZERO)
+
+        # Two args.
+        assert_equals(Min(Constant(1), Constant(2)).sign(), Sign.POSITIVE)
+        assert_equals(Min(Constant(1), self.aff_exp).sign(), Sign.UNKNOWN)
+        assert_equals(Min(Constant(1), Constant(-2)).sign(), Sign.NEGATIVE)
+        assert_equals(Min(Constant(1), Constant(0)).sign(), Sign.ZERO)
+
+        assert_equals(Min(self.aff_exp, Constant(0)).sign(), Sign.NEGATIVE)
+        assert_equals(Min(self.aff_exp, self.aff_exp).sign(), Sign.UNKNOWN)
+        assert_equals(Min(self.aff_exp, Constant(-2)).sign(), Sign.NEGATIVE)
+
+        assert_equals(Min(Constant(0), Constant(0)).sign(), Sign.ZERO)
+        assert_equals(Min(Constant(0), Constant(-2)).sign(), Sign.NEGATIVE)
+
+        assert_equals(Min(Constant(-3), Constant(-2)).sign(), Sign.NEGATIVE)
 
     def test_sum(self):
         assert_equals(Sum(Constant(2), Constant(0)).sign(), Sign.POSITIVE)

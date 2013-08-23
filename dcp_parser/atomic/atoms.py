@@ -177,14 +177,21 @@ class Log_sum_exp(Atom):
 
 class Max(Atom):
     """ Maximum argument. """
-    # Positive if any arg positive or zero.
-    # Unknown if no args positive and any arg unknown.
-    # Negative if all arguments negative.
+    """
+    Reduces the list of argument signs according to the following rules:
+        POSITIVE, ANYTHING = POSITIVE
+        ZERO, UNKNOWN = POSITIVE
+        ZERO, ZERO = ZERO
+        ZERO, NEGATIVE = ZERO
+        UNKNOWN, NEGATIVE = UNKNOWN
+        NEGATIVE, NEGATIVE = NEGATIVE
+    """
     def sign(self):
-        # Replace all zeros with positives.
-        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign 
-                 for sign in self.argument_signs()]
-        return max(signs)
+        arg_signs = self.argument_signs()
+        sign = max(arg_signs)
+        if sign == Sign.UNKNOWN and Sign.ZERO in arg_signs:
+            return Sign.POSITIVE
+        return sign
 
     # Always convex
     def signed_curvature(self):
@@ -196,14 +203,21 @@ class Max(Atom):
 
 class Min(Atom):
     """ Minimum argument. """
-    # Negative if any arg negative or zero.
-    # Unknown if at least one arg unknown and all others positive.
-    # Positive if all args positive.
+    """
+    Reduces the list of argument signs according to the following rules:
+        NEGATIVE, ANYTHING = NEGATIVE
+        ZERO, UNKNOWN = NEGATIVE
+        ZERO, ZERO = ZERO
+        ZERO, POSITIVE = ZERO
+        UNKNOWN, POSITIVE = UNKNOWN
+        POSITIVE, POSITIVE = POSITIVE
+    """
     def sign(self):
-        # Replace all zeros with negatives.
-        signs = [Sign.NEGATIVE if sign == Sign.ZERO else sign
-                 for sign in self.argument_signs()]
-        return min(signs)
+        arg_signs = self.argument_signs()
+        sign = min(arg_signs)
+        if sign == Sign.ZERO and Sign.UNKNOWN in arg_signs:
+            return Sign.NEGATIVE
+        return sign
 
     # Always convex
     def signed_curvature(self):
