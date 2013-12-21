@@ -15,5 +15,6 @@ setup(
         url='https://github.com/SteveDiamond/parser/',
     license='...',
     description='A parser for mathematical expressions that does Disciplined Convex Programming analysis.',
+    long_description=open('README.txt').read(),
     requires = ["ply(>= 3.4)"]
 )
