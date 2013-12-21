@@ -2,12 +2,13 @@ from distutils.core import setup
 
 setup(
     name='dcp_parser',
-    version='0.1',
-    author='Steven Diamond, Eric Chu, Stephen Boyd',
-    author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
+    version='1.0',
+    author='Steven Diamond',
+    author_email='stevend2@stanford.edu',
     packages=[  'dcp_parser',
                 'dcp_parser.atomic',
                 'dcp_parser.error_messages',
+                'dcp_parser.expression',
                 'dcp_parser.json',
              ],
     package_dir={'dcp_parser': 'dcp_parser'},
