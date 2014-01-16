@@ -259,9 +259,12 @@ class TestAtoms(object):
     def test_norm(self):
         assert_equals(Norm(self.cvx_pos, self.aff_exp, self.const_exp, 1341.143).curvature(), Curvature.CONVEX)
         assert_equals(Norm(self.cvx_pos, self.aff_exp, self.const_exp, 2).sign(), Sign.POSITIVE)
+        assert_equals(Norm2(self.cvx_pos, self.aff_exp, self.const_exp).sign(), Sign.POSITIVE)
+        assert_equals(Norm1(self.cvx_pos, self.aff_exp, self.const_exp).sign(), Sign.POSITIVE)
 
         assert_equals(Norm(self.conc_neg, 'Inf').curvature(), Curvature.CONVEX)
         assert_equals(Norm(self.cvx_neg, 'Inf').curvature(), Curvature.NONCONVEX)
+        assert_equals(Norm_inf(self.conc_neg).curvature(), Curvature.CONVEX)
 
         assert_equals(len(Norm(self.cvx_pos, self.cvx_neg, 10).arguments()), 2)
         assert_not_equals(Norm(self.cvx_pos, self.cvx_neg, 10).arguments()[0].name, Atom.GENERATED_EXPRESSION)

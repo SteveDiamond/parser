@@ -147,7 +147,7 @@ class Parameterized(object):
         self.parameter = default
         if len(args) > 0:
             last_arg = Atom.constant_to_number(args[len(args)-1])
-            if not isinstance(last_arg,Expression):
+            if not isinstance(last_arg, Expression):
                 self.parameter = last_arg
                 args = args[:-1]
         # Throws error if parameter is invalid.
@@ -333,7 +333,7 @@ class Exp(Atom):
 class Norm(Atom, Parameterized):
     """ 
     The p-norm for a vector (list of scalar values)
-    Use:  Norm(p, *args)
+    Use:  Norm(*args, p)
     p can be either a number greater than or equal to 1 or 'Inf'
     p defaults to 2.
     """
@@ -370,6 +370,33 @@ class Norm(Atom, Parameterized):
             monotonicity = Norm.ABS_SIGN_TO_MONOTONICITY[sign_str]
             monotonicities.append(monotonicity)
         return monotonicities
+
+class Norm2(Norm):
+    """ 
+    The L2-norm for a vector (list of scalar values)
+    Use:  Norm2(*args)
+    """
+    def __init__(self, *args):
+        args = [arg for arg in args] + [2]
+        super(Norm2, self).__init__(*args)
+
+class Norm1(Norm):
+    """ 
+    The L1-norm for a vector (list of scalar values)
+    Use:  Norm1(*args)
+    """
+    def __init__(self, *args):
+        args = [arg for arg in args] + [1]
+        super(Norm1, self).__init__(*args)
+
+class Norm_inf(Norm):
+    """ 
+    The LInfinity-norm for a vector (list of scalar values)
+    Use:  Norm_inf(*args)
+    """
+    def __init__(self, *args):
+        args = [arg for arg in args] + ["Inf"]
+        super(Norm_inf, self).__init__(*args)
 
 class Abs(Norm):
     """ Absolute value of one scalar argument. """
