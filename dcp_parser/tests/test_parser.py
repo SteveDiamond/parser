@@ -240,6 +240,24 @@ class TestParser(object):
           assert_equals(expression, str(result))
           assert_equals(result.curvature, Curvature.CONVEX)
 
+          expression = 'norm_inf(u)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
+          expression = 'norm1(u)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
+          expression = 'norm2(u)'
+          self.parser.parse(expression)
+          result = self.parser.statements[len(self.parser.statements) - 1]
+          assert_equals(expression, str(result))
+          assert_equals(result.curvature, Curvature.CONVEX)
+
       # Test parser with constraints
       def test_constraints_eval(self):
           self.parser.parse('variable x y')
