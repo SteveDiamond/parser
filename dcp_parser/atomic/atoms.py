@@ -240,9 +240,13 @@ class Log(Atom):
     def sign(self):
         return Sign.UNKNOWN
 
-    # Always concave
+    # Concave unless domain error,
+    # i.e., an argument is negative or zero.
     def signed_curvature(self):
-        return Curvature.CONCAVE
+        if self.args[0].sign in [Sign.NEGATIVE, Sign.ZERO]:
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONCAVE
 
     # Always increasing.
     def monotonicity(self):
@@ -266,23 +270,29 @@ class Sum(Atom):
 class Geo_mean(Atom):
     """ 
     (x1*...*xn)^(1/n) if all xi >= 0.
-    -Inf if any xi < 0.
+    Domain error if any xi < 0.
     """
     def __init__(self, *args):
         super(Geo_mean, self).__init__(*args)
 
-    # Positive if all args positive or zero.
-    # Unknown if any arg unknown.
-    # Negative if any argument negative.
+    # Unknown if any argument negative, 
+    # otherwise positive.
     def sign(self):
-        # Replace all zeros with positives.
-        signs = [Sign.POSITIVE if sign == Sign.ZERO else sign 
-                 for sign in self.argument_signs()]
-        return min(signs)
+        if Sign.NEGATIVE in self.argument_signs():
+            return Sign.UNKNOWN
+        else:
+            for sign in self.argument_signs():
+                if sign != Sign.ZERO:
+                    return Sign.POSITIVE
+            return Sign.ZERO
 
-    # Always concave
+    # Concave unless domain error,
+    # i.e., an argument is negative
     def signed_curvature(self):
-        return Curvature.CONCAVE
+        if Sign.NEGATIVE in self.argument_signs():
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONCAVE
 
     # Always increasing.
     def monotonicity(self):
@@ -291,7 +301,7 @@ class Geo_mean(Atom):
 class Sqrt(Geo_mean):
     """ square root of a single argument """
     def __init__(self, x):
-        super(Sqrt,self).__init__(x)
+        super(Sqrt, self).__init__(x)
 
 class Log_normcdf(Atom):
     """ 
@@ -299,7 +309,7 @@ class Log_normcdf(Atom):
     standard normal random variable 
     """
     def __init__(self, x):
-        super(Log_normcdf,self).__init__(x)
+        super(Log_normcdf, self).__init__(x)
 
     # Always unknown
     def sign(self):
@@ -404,17 +414,26 @@ class Abs(Norm):
         super(Abs,self).__init__(x,1)
 
 class Entr(Atom):
-    """ The entropy function -x*log(x) """
+    """ The entropy function -x*log(x) 
+    Domain x >= 0.
+    """
     def __init__(self, x):
         super(Entr,self).__init__(x)
 
-    # Always UNKNOWN
+    # Zero if x is 0, otherwise unknown.
     def sign(self):
-        return Sign.UNKNOWN
+        if Sign.ZERO in self.argument_signs():
+            return Sign.ZERO
+        else:
+            return Sign.UNKNOWN
 
-    # Always concave
+    # Concave unless domain error,
+    # i.e., an argument is negative
     def signed_curvature(self):
-        return Curvature.CONCAVE
+        if Sign.NEGATIVE in self.argument_signs():
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONCAVE
 
     # Always non-monotonic
     def monotonicity(self):
@@ -439,9 +458,12 @@ class Huber(Atom, Parameterized):
                 "Invalid value '%s' for M in %s(...,M)." % (self.parameter, self.name())
                 )
 
-    # Always positive
+        # Zero if x is 0, otherwise positive.
     def sign(self):
-        return Sign.POSITIVE
+        if Sign.ZERO in self.argument_signs():
+            return Sign.ZERO
+        else:
+            return Sign.POSITIVE
 
     # Always convex
     def signed_curvature(self):
@@ -500,18 +522,26 @@ class Huber_circ(Huber_pos, Parameterized):
 
 class Inv_pos(Atom):
     """ 
-    1/x  if x > 0. +Inf if x <= 0.
+    1/x, domain x > 0.
     """
     def __init__(self, x):
         super(Inv_pos, self).__init__(x)
 
-    # Always positive
+    # Positive unless domain error,
+    # i.e., an argument is negative.
     def sign(self):
-        return Sign.POSITIVE
+        if self.args[0].sign in [Sign.NEGATIVE, Sign.ZERO]:
+            return Sign.UNKNOWN
+        else:
+            return Sign.POSITIVE
 
-    # Always convex
+    # Convex unless domain error,
+    # i.e., an argument is negative
     def signed_curvature(self):
-        return Curvature.CONVEX
+        if self.args[0].sign in [Sign.NEGATIVE, Sign.ZERO]:
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONVEX
 
     # Always decreasing.
     def monotonicity(self):
@@ -521,7 +551,7 @@ class Kl_div(Atom):
     """ 
     Kullback-Leibler distance 
     kl_div(x,y) = x*log(x/y)-x+y
-    +Inf unless x,y non-negative and x == 0 iff y == 0
+    Domain error unless x,y non-negative.
     """
     def __init__(self, x,y):
         super(Kl_div, self).__init__(x,y)
@@ -530,9 +560,14 @@ class Kl_div(Atom):
     def sign(self):
         return Sign.UNKNOWN
 
-    # Always convex
+    # Convex unless domain error,
+    # i.e., an argument is negative or zero.
     def signed_curvature(self):
-        return Curvature.CONVEX
+        if Sign.NEGATIVE in self.argument_signs() or \
+           Sign.ZERO in self.argument_signs():
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONVEX
 
     # Always non-monotonic.
     def monotonicity(self):
@@ -581,9 +616,9 @@ class Pos(Max):
 class Pow(Atom, Parameterized):
     """ 
     pow(x,p) =
-        If p <= 0 then x^p if x > 0, else +Inf
-        If 0 < p <=1 then x^p if x >= 0, else -Inf
-        If p > 1 then x^p if x >= 0, else +Inf
+        If p <= 0 then x^p with domain x > 0.
+        If 0 < p <=1 then x^p with domain x >= 0/
+        If p > 1 then x^p with domain x >= 0.
     """
     def __init__(self,x,p):
         self.set_parameter(Atom.constant_to_number(p))
@@ -598,17 +633,27 @@ class Pow(Atom, Parameterized):
                 "Invalid value '%s' for p in pow(..., p)." % self.parameter
                 )
 
-    # Depends on p and the sign of x
+    # Depends on p and the sign of x.
+    # Unknown if x out of domain.
     def sign(self):
-        if self.p <= 0:
-            return Sign.POSITIVE
-        elif self.p <= 1:
-            return self.x.sign
-        else: # p > 1
-            return Sign.POSITIVE
+        # Check for domain error.
+        if self.x.sign == Sign.NEGATIVE or \
+           (self.p <= 0 and self.x.sign == Sign.ZERO):
+            return Sign.UNKNOWN
+        else:
+            if self.x.sign == Sign.ZERO:
+                return Sign.ZERO
+            else:
+                return Sign.POSITIVE
 
     # Depends on p.
+    # Non-convex if x out of domain.
     def signed_curvature(self):
+        # Check for domain error.
+        if self.x.sign == Sign.NEGATIVE or \
+           (self.p <= 0 and self.x.sign == Sign.ZERO):
+            return Curvature.NONCONVEX
+
         if self.p <= 0:
             return Curvature.CONVEX
         elif self.p <= 1:
@@ -683,20 +728,29 @@ class Rel_entr(Atom):
 class Quad_over_lin(Atom):
     """ 
     quad_over_lin(x,y) = x^2/y
+    Domain y > 0.
     Last argument is the divisor. All preceding arguments are treated as part of the vector x.
     """
     def __init__(self, x, y):
         super(Quad_over_lin,self).__init__(x,y)
         self.x = self.args[0]
         self.y = self.args[1]
-    
-    # Always positive.
-    def sign(self):
-        return Sign.POSITIVE
 
-    # Always convex
+    # Positive unless domain error,
+    # i.e., y is negative or zero.
+    def sign(self):
+        if self.y.sign in [Sign.NEGATIVE, Sign.ZERO]:
+            return Sign.UNKNOWN
+        else:
+            return Sign.POSITIVE
+
+    # Convex unless domain error,
+    # i.e., y is negative or zero.
     def signed_curvature(self):
-        return Curvature.CONVEX
+        if self.y.sign in [Sign.NEGATIVE, Sign.ZERO]:
+            return Curvature.NONCONVEX
+        else:
+            return Curvature.CONVEX
 
     # Increasing (decreasing) for positive (negative) argument in vector args.
     # Decreasing for divisor arguments
