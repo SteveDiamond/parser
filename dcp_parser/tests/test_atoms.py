@@ -58,7 +58,7 @@ class TestAtoms(object):
         # Non-standard short names
         special_names = ['norm', 'norm_largest','huber','berhu','huber_pos','huber_circ','pow',
                          'pow_pos','pow_abs','sum_largest','sum_smallest'];
-        
+
         # Test short names for all standard atoms
         for subclass in atom_loader.get_subclasses(Atom):
             name = subclass.__name__.lower()
@@ -70,8 +70,8 @@ class TestAtoms(object):
                     new_args.append(self.cvx_exp)
                 atom = subclass(*new_args)
                 assert_equals(atom.short_name(), name)
-        
-        # Norm 
+
+        # Norm
         exp = atom_dict['norm'](self.conc_exp, self.cvx_exp, 3)
         assert_equals(exp.short_name, 'norm(..., 3)')
 
@@ -399,10 +399,10 @@ class TestAtoms(object):
     def test_kl_div(self):
         assert_equals(Kl_div(self.aff_exp, self.aff_exp).curvature(), Curvature.CONVEX)
         assert_equals(Kl_div(self.conc_exp, self.const_exp).curvature(), Curvature.NONCONVEX)
-        assert_equals(Kl_div(self.cvx_exp, self.noncvx_exp).sign(), Sign.UNKNOWN)
-        assert_equals(Kl_div(Constant(-2), Constant(1)).sign(), Sign.UNKNOWN)
+        assert_equals(Kl_div(self.cvx_exp, self.noncvx_exp).sign(), Sign.POSITIVE)
+        assert_equals(Kl_div(Constant(-2), Constant(1)).sign(), Sign.POSITIVE)
         assert_equals(Kl_div(self.conc_neg, Constant(1)).curvature(), Curvature.NONCONVEX)
-        assert_equals(Kl_div(Constant(0), Constant(2)).sign(), Sign.UNKNOWN)
+        assert_equals(Kl_div(Constant(0), Constant(2)).sign(), Sign.POSITIVE)
 
         assert_equals(len(Kl_div(self.cvx_exp, self.noncvx_exp).arguments()), 2)
         assert_not_equals(Kl_div(self.cvx_exp, self.noncvx_exp).arguments()[0].name, Atom.GENERATED_EXPRESSION)
@@ -438,7 +438,7 @@ class TestAtoms(object):
         assert_equals(Pow(self.cvx_pos,-1).sign(), Sign.POSITIVE)
         assert_equals(Pow(Constant(-2), -1).sign(), Sign.UNKNOWN)
         assert_equals(Pow(Constant(0), -1).sign(), Sign.UNKNOWN)
-       
+
         assert_equals(Pow(self.cvx_pos,0.5).curvature(), Curvature.NONCONVEX)
         assert_equals(Pow(self.cvx_pos,0.5).sign(), Sign.POSITIVE)
         assert_equals(Pow(self.noncvx_exp, 0.5).sign(), Sign.POSITIVE)
@@ -446,7 +446,7 @@ class TestAtoms(object):
         assert_equals(Pow(self.conc_neg,0.5).sign(), Sign.UNKNOWN)
         assert_equals(Pow(Constant(-2), 0.5).sign(), Sign.UNKNOWN)
         assert_equals(Pow(Constant(0), 0.5).sign(), Sign.ZERO)
-        
+
         assert_equals(Pow(self.cvx_pos,2).curvature(), Curvature.CONVEX)
         assert_equals(Pow(self.conc_neg,2).curvature(), Curvature.NONCONVEX)
         assert_equals(Pow(self.cvx_neg,2).curvature(), Curvature.NONCONVEX)
@@ -454,7 +454,7 @@ class TestAtoms(object):
         assert_equals(Pow(self.noncvx_exp, 2).sign(), Sign.POSITIVE)
         assert_equals(Pow(Constant(-2), 2).sign(), Sign.UNKNOWN)
         assert_equals(Pow(Constant(0), 2).sign(), Sign.ZERO)
-        
+
         assert_equals(len(Pow(self.cvx_pos,2).arguments()), 1)
         assert_not_equals(Pow(self.cvx_pos,2).arguments()[0].name, Atom.GENERATED_EXPRESSION)
 
@@ -481,7 +481,7 @@ class TestAtoms(object):
             assert False
         except Exception, e:
             assert_equals(str(e), 'Must have p >= 1 for pow_abs(..., p), but have p = 0.')
-        
+
     def test_pow_pos(self):
         assert_equals(Pow_pos(self.cvx_pos,2).curvature(), Curvature.CONVEX)
         assert_equals(Pow_pos(self.conc_neg,2).curvature(), Curvature.NONCONVEX)
@@ -515,7 +515,7 @@ class TestAtoms(object):
 
         assert_equals(len(Square_pos(self.cvx_pos).arguments()), 1)
         assert_not_equals(Square_pos(self.cvx_pos).arguments()[0].name, Atom.GENERATED_EXPRESSION)
-        
+
     def test_rel_entr(self):
         assert_equals(Rel_entr(self.aff_exp, self.const_exp).curvature(), Curvature.CONVEX)
         assert_equals(Rel_entr(self.conc_exp, self.aff_exp).curvature(), Curvature.NONCONVEX)

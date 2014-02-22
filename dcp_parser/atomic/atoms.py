@@ -82,9 +82,9 @@ class Atom(object):
     # Used for defining atoms as compositions of atoms.
     @staticmethod
     def atom_to_expression(instance):
-        return Expression(instance.curvature(), 
-                          instance.sign(), 
-                          Atom.GENERATED_EXPRESSION, 
+        return Expression(instance.curvature(),
+                          instance.sign(),
+                          Atom.GENERATED_EXPRESSION,
                           instance.arguments())
 
     # Converts a Constant or -Constant to its numeric value.
@@ -130,7 +130,7 @@ class Atom(object):
         return Curvature.sum(arg_curvatures)
 
 class Parameterized(object):
-    """ 
+    """
     Abstract base class for all parameterized atoms.
     All parameterized atoms must inherit from some subclass of Atom and Parameterized.
     """
@@ -228,7 +228,7 @@ class Min(Atom):
         return [Monotonicity.INCREASING] * len(self.args)
 
 class Log(Atom):
-    """ 
+    """
     Natural logarithm
     log(x) for x > 0.
     -Inf for x <= 0.
@@ -268,14 +268,14 @@ class Sum(Atom):
         return [Monotonicity.INCREASING] * len(self.args)
 
 class Geo_mean(Atom):
-    """ 
+    """
     (x1*...*xn)^(1/n) if all xi >= 0.
     Domain error if any xi < 0.
     """
     def __init__(self, *args):
         super(Geo_mean, self).__init__(*args)
 
-    # Unknown if any argument negative, 
+    # Unknown if any argument negative,
     # otherwise positive.
     def sign(self):
         if Sign.NEGATIVE in self.argument_signs():
@@ -304,9 +304,9 @@ class Sqrt(Geo_mean):
         super(Sqrt, self).__init__(x)
 
 class Log_normcdf(Atom):
-    """ 
-    logarithm of cumulative distribution function of 
-    standard normal random variable 
+    """
+    logarithm of cumulative distribution function of
+    standard normal random variable
     """
     def __init__(self, x):
         super(Log_normcdf, self).__init__(x)
@@ -341,7 +341,7 @@ class Exp(Atom):
         return [Monotonicity.INCREASING]
 
 class Norm(Atom, Parameterized):
-    """ 
+    """
     The p-norm for a vector (list of scalar values)
     Use:  Norm(*args, p)
     p can be either a number greater than or equal to 1 or 'Inf'
@@ -352,10 +352,10 @@ class Norm(Atom, Parameterized):
         # Otherwise default to parameter = 2
         args = self.set_parameter(2, *args)
         super(Norm,self).__init__(*args)
-    
+
     # Throws error if parameter is invalid.
     def validate_parameter(self):
-        if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or 
+        if not ( (isinstance(self.parameter, Number) and self.parameter >= 1) or
             self.parameter == 'Inf'):
             raise Exception(
                 "Invalid value '%s' for p in norm(..., p)." % self.parameter
@@ -382,7 +382,7 @@ class Norm(Atom, Parameterized):
         return monotonicities
 
 class Norm2(Norm):
-    """ 
+    """
     The L2-norm for a vector (list of scalar values)
     Use:  Norm2(*args)
     """
@@ -391,7 +391,7 @@ class Norm2(Norm):
         super(Norm2, self).__init__(*args)
 
 class Norm1(Norm):
-    """ 
+    """
     The L1-norm for a vector (list of scalar values)
     Use:  Norm1(*args)
     """
@@ -400,7 +400,7 @@ class Norm1(Norm):
         super(Norm1, self).__init__(*args)
 
 class Norm_inf(Norm):
-    """ 
+    """
     The LInfinity-norm for a vector (list of scalar values)
     Use:  Norm_inf(*args)
     """
@@ -414,7 +414,7 @@ class Abs(Norm):
         super(Abs,self).__init__(x,1)
 
 class Entr(Atom):
-    """ The entropy function -x*log(x) 
+    """ The entropy function -x*log(x)
     Domain x >= 0.
     """
     def __init__(self, x):
@@ -441,7 +441,7 @@ class Entr(Atom):
 
 
 class Huber(Atom, Parameterized):
-    """ 
+    """
     The Huber function
     Huber(x,M) = 2M|x|-M^2 for |x| >= M
                  |x|^2 for |x| <= M
@@ -476,7 +476,7 @@ class Huber(Atom, Parameterized):
         return [monotonicity]
 
 class Berhu(Huber, Parameterized):
-    """ 
+    """
     The reversed Huber function
     Berhu(x,M) = |x| for |x| <= M
                  (|x|^2 + M^2)/2M for |x| >= M
@@ -521,7 +521,7 @@ class Huber_circ(Huber_pos, Parameterized):
         self.save_original_args(args)
 
 class Inv_pos(Atom):
-    """ 
+    """
     1/x, domain x > 0.
     """
     def __init__(self, x):
@@ -548,17 +548,17 @@ class Inv_pos(Atom):
         return [Monotonicity.DECREASING]
 
 class Kl_div(Atom):
-    """ 
-    Kullback-Leibler distance 
+    """
+    Kullback-Leibler distance
     kl_div(x,y) = x*log(x/y)-x+y
     Domain error unless x,y non-negative.
     """
     def __init__(self, x,y):
         super(Kl_div, self).__init__(x,y)
 
-    # Always unknown
+    # Always positive
     def sign(self):
-        return Sign.UNKNOWN
+        return Sign.POSITIVE
 
     # Convex unless domain error,
     # i.e., an argument is negative or zero.
@@ -574,7 +574,7 @@ class Kl_div(Atom):
         return [Monotonicity.NONMONOTONIC] * len(self.args)
 
 class Norm_largest(Atom, Parameterized):
-    """ 
+    """
     Sum of the k largest magnitudes (i.e. absolute values) in the given arguments.
     norm_largest(vector, k)
     """
@@ -582,7 +582,7 @@ class Norm_largest(Atom, Parameterized):
         # Use last argument as k
         args = self.set_parameter(None, *args)
         super(Norm_largest, self).__init__(*args)
-            
+
     # Raises error if the parameter is not a number.
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
@@ -614,7 +614,7 @@ class Pos(Max):
         self.save_original_args([x])
 
 class Pow(Atom, Parameterized):
-    """ 
+    """
     pow(x,p) =
         If p <= 0 then x^p with domain x > 0.
         If 0 < p <=1 then x^p with domain x >= 0/
@@ -669,7 +669,7 @@ class Pow(Atom, Parameterized):
             return [Monotonicity.INCREASING]
         else: # p > 1
             return [Pow.ABS_SIGN_TO_MONOTONICITY[str(self.x.sign)]]
-            
+
 class Pow_abs(Pow, Parameterized):
     """ |x|^p """
     def __init__(self,x,p):
@@ -726,7 +726,7 @@ class Rel_entr(Atom):
         return [Monotonicity.NONMONOTONIC] * len(self.args)
 
 class Quad_over_lin(Atom):
-    """ 
+    """
     quad_over_lin(x,y) = x^2/y
     Domain y > 0.
     Last argument is the divisor. All preceding arguments are treated as part of the vector x.
@@ -804,7 +804,7 @@ class Sum_largest(Atom, Parameterized):
         # Use last argument as k
         args = self.set_parameter(None, *args)
         super(Sum_largest, self).__init__(*args)
-   
+
     # Raises error if the parameter is not a number.
     def validate_parameter(self):
         if not isinstance(self.parameter,Number):
