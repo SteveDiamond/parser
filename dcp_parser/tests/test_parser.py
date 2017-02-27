@@ -16,110 +16,110 @@ class TestParser(object):
           try:
                self.parser.parse("x < 2")
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'<' constraints are not valid. Consider using '<='.")
 
           try:
                self.parser.parse("x > 2")
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'>' constraints are not valid. Consider using '>='.")
 
           try:
                self.parser.parse('a * x = y + b')
                assert False
-          except Exception, e:
+          except Exception as e:
                 assert_equals(str(e), "'=' is not valid. Did you mean '=='?")
 
           try:
                self.parser.parse('x^2')
                assert False
-          except Exception, e:
+          except Exception as e:
                 assert_equals(str(e), "'^' is not valid. Consider using the 'pow' function.")
 
           try:
                self.parser.parse('.')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Illegal character '.'.")
 
           try:
                self.parser.parse('1 + sum(x,y) + max(1,,)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Missing arguments in 'max(1, , )'.")
 
           try:
                self.parser.parse('none')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'none' is not a known variable or parameter.")
           try:
                self.parser.parse('max()')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Missing arguments in 'max()'.")
 
           try:
                self.parser.parse('max(1 1)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Syntax error in call to 'max'.")
 
           try:
                self.parser.parse('none(x)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'none' is not a known function.")
 
           # Arithmetic expression errors.
           try:
                self.parser.parse('1 + sum(x,y) + max(1,++)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Syntax error in call to 'max'.")
 
 
           try:
                self.parser.parse('-')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'-' is not a valid expression.")
 
           try:
                self.parser.parse('1--')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "'1--' is not a valid expression.")
 
           try:
                self.parser.parse('1<= ==')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Invalid syntax after '1'.")
 
           try:
                self.parser.parse('1 + >= max(1)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Invalid syntax after '1'.")
 
           try:
                self.parser.parse('1 == 1 == 1')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "An expression can only contain one constraint.")
 
           try:
                self.parser.parse('1 + 1 -2 <= 3*5 - x + max(x) <= 2')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "An expression can only contain one constraint.")
 
           try:
                self.parser.parse('1 + (1 == 1)')
                assert False
-          except Exception, e:
+          except Exception as e:
                assert_equals(str(e), "Invalid syntax after '1'.")
 
       def test_parse_variables(self):

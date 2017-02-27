@@ -126,7 +126,7 @@ class TestAtoms(object):
         try:
             Log_sum_exp()
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "No arguments given to 'log_sum_exp'.")
 
         assert_equals(len(Log_sum_exp(self.conc_exp, self.cvx_exp).arguments()), 2)
@@ -282,21 +282,21 @@ class TestAtoms(object):
         try:
             Norm(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value '0' for p in norm(..., p).")
 
         # Check error message
         try:
             Norm(Constant(-2), 'not inf')
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value 'not inf' for p in norm(..., p).")
 
         # Check error message
         try:
             Norm()
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "No arguments given to 'norm'.")
 
     def test_abs(self):
@@ -322,7 +322,7 @@ class TestAtoms(object):
         try:
             Berhu(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value '0' for M in berhu(...,M).")
 
     def test_entr(self):
@@ -350,7 +350,7 @@ class TestAtoms(object):
         try:
             Huber(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value '0' for M in huber(...,M).")
 
     def test_huber_pos(self):
@@ -366,7 +366,7 @@ class TestAtoms(object):
         try:
             Huber_pos(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value '0' for M in huber_pos(...,M).")
 
     def test_huber_circ(self):
@@ -382,7 +382,7 @@ class TestAtoms(object):
         try:
             Huber_circ(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value '0' for M in huber_circ(...,M).")
 
     def test_inv_pos(self):
@@ -420,7 +420,7 @@ class TestAtoms(object):
         try:
             Norm_largest(Constant(-2), 'invalid')
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value 'invalid' for k in norm_largest(...,k).")
 
     def test_pos(self):
@@ -462,7 +462,7 @@ class TestAtoms(object):
         try:
             Pow(Constant(-2), 'wrong')
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value 'wrong' for p in pow(..., p).")
 
     def test_pow_abs(self):
@@ -479,7 +479,7 @@ class TestAtoms(object):
         try:
             Pow_abs(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), 'Must have p >= 1 for pow_abs(..., p), but have p = 0.')
 
     def test_pow_pos(self):
@@ -495,7 +495,7 @@ class TestAtoms(object):
         try:
             Pow_pos(Constant(-2), 0)
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), 'Must have p >= 1 for pow_pos(..., p), but have p = 0.')
 
     def test_square_abs(self):
@@ -587,7 +587,7 @@ class TestAtoms(object):
         try:
             Sum_largest(self.cvx_pos, 'invalid')
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value 'invalid' for k in sum_largest(...,k).")
 
     def test_sum_smallest(self):
@@ -604,5 +604,5 @@ class TestAtoms(object):
         try:
             Sum_smallest(self.cvx_pos, 'invalid')
             assert False
-        except Exception, e:
+        except Exception as e:
             assert_equals(str(e), "Invalid value 'invalid' for k in sum_smallest(...,k).")
