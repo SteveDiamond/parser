@@ -1,6 +1,9 @@
 """ Definitions of atomic functions """
 import abc
-import exceptions
+try:  # No exceptions module in Python 3
+    import exceptions
+except ImportError:
+    pass
 import copy
 from types import MethodType
 from numbers import Number

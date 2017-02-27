@@ -19,12 +19,12 @@ def parse_file(parser):
             filename = get_filename()
             f = open(filename, 'r')
             break
-        except Exception, e:
+        except Exception as e:
             print "Invalid filename"
     for line in f.readlines():
         try:
           parser.parse(line)
-        except Exception, e:
+        except Exception as e:
           print "Error parsing " + line
 
 def select_expression(expressions):
@@ -46,7 +46,7 @@ def display_root(exp):
     print "Current expression: %s" % exp
     try:
         print "Curvature: %s, Sign: %s" % (exp.curvature, exp.sign)
-    except Exception, e: # exp is a Constraint
+    except Exception as e: # exp is a Constraint
         pass 
     for error in exp.errors:
         if error.is_indexed():

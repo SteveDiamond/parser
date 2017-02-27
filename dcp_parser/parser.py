@@ -1,7 +1,7 @@
 from expression.statement import Statement
 from expression.expression import Parameter, Variable, Constant
 from expression.sign import Sign
-import atomic.atom_loader
+import dcp_parser.atomic.atom_loader as atom_loader
 import ply.yacc
 
 class Parser(object):
@@ -14,7 +14,7 @@ class Parser(object):
     """
     def __init__(self):
         self.clear()
-        self.atom_dict = atomic.atom_loader.generate_atom_dict()
+        self.atom_dict = atom_loader.generate_atom_dict()
         self.parser = self.build_parser()
 
     # Dump previous input.
